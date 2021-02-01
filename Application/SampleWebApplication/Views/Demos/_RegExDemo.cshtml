@@ -1,0 +1,317 @@
+﻿@{
+    ViewBag.Title = @"[REGEX DEMO / XML]";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILOS FORMULARIO                             */
+    /*------------------------------------------------*/
+
+    fieldset {
+        padding: 1em;
+        /*font: 80%/1 sans-serif;*/
+    }
+
+    label {
+        width: 40%;
+        margin-right: 0.5em;
+        padding-top: 0.2em;
+        text-align: right;
+        font-size: xx-small;
+    }
+    .fieldSetRegex {
+        width:50%;
+    }
+    /*------------------------------------------------*/
+    /* ESTILOS STATUS DE OPERACION                    */
+    /*------------------------------------------------*/
+    .modalStatus {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 99; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    .modalStatus-content {
+        text-align: center;
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 1em;
+        border: 1px solid #888;
+        width: 100%; /* Could be more or less, depending on screen size */
+        color: black;
+    }
+
+    /*------------------------------------------------*/
+    /* ESTILO PARA AREA DE XML                        */
+    /*------------------------------------------------*/
+    #global 
+    {
+        height        : 100px;
+        width         : 100%;
+        border        : 1px solid #ddd;
+        background    : #cccccc;
+        color         : #0000ff;
+        overflow-y    : scroll;
+    }
+    #mensajes 
+    {
+        height: auto;
+    }
+</style>
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+            <p>[System.Text.RegularExpressions  Namespace - <a href="javascript: void window.open('https://docs.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex?view=net-5.0')">"[CLASE "RegEx"]"</a>]</p>
+        </div>
+        <hr />
+        <p>Contenido a Buscar</p>
+        <div id="XmlContent">
+            <div id="global">
+                <div id="mensajes">
+                    @Html.Raw(@ViewBag.Message)
+                </div>
+            </div>
+        </div>
+        <div>
+            <fieldset>
+                <legend></legend>
+                <label for="tagSearch">ELEMENTO A BUSCAR : </label>
+                <select id="tagSearch" class="fieldSetRegex">
+                    <option value="0">[SELECCIONE_OPCION]</option>
+                    <option value="title">title</option>
+                    <option value="artist">artist</option>
+                    <option value="country">country</option>
+                    <option value="company" selected="selected">company</option>
+                    <option value="price">price</option>
+                    <option value="year">year</option>
+                </select>
+                <br />
+                <label for="textSearch">CONTENIDO : </label>
+                <input type="text" id="textSearch" class="fieldSetRegex" value="" />
+                <br />
+                <label for="regExSearch">EXPRESION REGULAR : </label>
+                <input type="text" id="regExSearch" class="fieldSetRegex" style="background-color:#cccccc;" value="" readonly="readonly" />
+                <br />
+            </fieldset>
+            <hr />
+        </div>
+        <div>
+            <input id="GetRegex" type="button" title="[BUSCAR]" value="[BUSCAR]"></input>
+            |
+            <input id="newSearch" type="button" title="[REINICIAR]" value="[REINICIAR]" disabled="disabled"></input>
+        </div>
+        <hr />
+        <a href="../Demos/_DemosIndex?lang=1">Volver al Menú</a>
+        <!-- INICIO VENTANA MODAL TRANSCURSO OPERACION -->
+        <div id="statusWindow" class="modalStatus" style="display:none">
+            <div class="modalStatus-content">
+                ... Procesando ...
+            </div>
+        </div>
+        <!-- FIN VENTANA MODAL TRANSCURSO DE OPERACION -->
+    </div>
+</div>
+
+<script type="text/javascript">
+    //
+    $(document).ready(function () {
+        console.log("LOADING PAGE 8");
+    });
+    //
+    function _ShowProgressBar() {
+        //
+        var modal           = document.getElementById("statusWindow");
+        modal.style.display = "block";
+        //
+        console.log('status window show');
+        //
+    }
+    //
+    function _HideProgressBar() {
+        //
+        var modal           = document.getElementById("statusWindow");
+        modal.style.display = "none";
+        modal.style.display = "hidden";
+        //
+        console.log('status window hide');
+        //
+    }
+    //
+    function DebugHostingContent(msg) {
+        //
+        console.log("cadena a evaular : " + msg);
+
+        //
+        let regEx = /(.*)(<!--SCRIPT GENERATED BY SERVER! PLEASE REMOVE-->)(.*\w+.*)(<!--SCRIPT GENERATED BY SERVER! PLEASE REMOVE-->)(.*)/;
+        //
+        var strMsg = msg.replace(/(\r\n|\n|\r)/gm, "");
+        //
+        var matches = strMsg.match(regEx);
+
+        if (matches != null) {
+            //
+            for (var index = 1; index < matches.length; index++) {
+                //
+                var matchValue = matches[index];
+                //        
+                console.log("coincidencia : " + matchValue);
+
+                //
+                if ((matchValue.indexOf("<!--SCRIPT GENERATED BY SERVER! PLEASE REMOVE-->") != -1) && (matchValue.trim() != "")) {
+                    //
+                    strMsg = strMsg.replace(matchValue, "");
+                    //
+                    console.log("REEMPLAZANDO. NUEVA CADENA : " + strMsg);
+                }
+
+                //
+                if ((matchValue.indexOf("<center>") != -1) && (matchValue.trim() != "")) {
+                    //
+                    strMsg = strMsg.replace(matchValue, "");
+                    //
+                    console.log("REEMPLAZANDO. NUEVA CADENA : " + strMsg);
+                }
+            }
+        }
+        else
+            console.log("NO_HAY_COINCIDENCIAS");
+
+        //
+        console.log("CADENA DEPURADA : " + strMsg);
+
+        //
+        return strMsg;
+    }
+    //
+    $("#GetRegex").click(function () {
+        try {
+            //
+            if ($('#tagSearch').val() == '0') {
+                //
+                alert('FAVOR SELECCIONE UN [ELEMENTO A BUSCAR]');
+                //
+                return false;
+            }
+            //
+            if ($('#textSearch').val() == '') {
+                //
+                alert('FAVOR INGRESE UN VALOR EN EL CAMPO [CONTENIDO]');
+                //
+                return false;
+            }
+            //
+            _ShowProgressBar();
+            //
+            var p_url      = "_RegExEval";
+            var tagSearch  = $("#tagSearch").val();
+            var textSearch = $("#textSearch").val();
+            //
+            $.ajax(
+                {
+                    url: p_url,
+                    data:
+                    {
+                        p_tagSearch  : tagSearch,
+                        p_textSearch : textSearch
+                    }
+                })
+                .done(function (data) {
+                    //
+                    _HideProgressBar();
+                    //
+                    var resultArray = data.split("|");
+                    //
+                    //
+                    if (resultArray.length > 0)
+                    {
+                        //
+                        var matchAmt       = resultArray[0];
+                        //
+                        var xmlHighlighted = resultArray[1];
+                        //
+                        var pattern        = DebugHostingContent(resultArray[2]);
+                        //
+                        console.log("REGEX. AMT OF MATCHES   : " + matchAmt);
+                        //
+                        console.log("REGEX. PATTERN          : " + pattern);
+                        //
+                        $('#mensajes').html(xmlHighlighted);
+                        //
+                        $("#GetRegex").prop('disabled', true);
+                        //
+                        $("#newSearch").prop('disabled', false);
+                        //
+                        $("#regExSearch").val(pattern);
+                        //
+                        alert('SE ENCONTRARON (' + matchAmt + ') COINCIDENCIAS');
+                        //
+                    }
+                    return true;
+                }
+                );
+        }
+        catch (error) {
+            //
+            alert("ERROR EN ARCHIVO ZIP");
+            //
+            console.error(error);
+            //
+            return false;
+        }
+        //
+    });
+    //
+    $("#newSearch").click(function () {
+        try {
+            //
+            _ShowProgressBar();
+            //
+            var p_url = "_NewSearch";
+            //
+            $.ajax(
+                {
+                    url: p_url
+                })
+                .done(function (msg) {
+                    //
+                    _HideProgressBar();
+                    //
+                    console.log("REGEX. RESET PAGE");
+                    //
+                    $("#GetRegex").prop('disabled', false);
+                    //
+                    $("#newSearch").prop('disabled', true);
+                    //
+                    $('#textSearch').val('');
+                    //
+                    $('#tagSearch').val('0');
+                    //
+                    $('#mensajes').html(msg);
+                    //
+                    $("#regExSearch").val('');
+                    //
+                    return true;
+                }
+                );
+        }
+        catch (error) {
+            //
+            alert("ERROR EN ARCHIVO ZIP");
+            //
+            console.error(error);
+            //
+            return false;
+        }
+        //
+    });
+    //
+</script>

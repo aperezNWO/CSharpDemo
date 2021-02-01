@@ -1,0 +1,7 @@
+AForge Neural Net Library
+
+Copyright © Andrew Kirillov, 2005
+andrew.kirillov@gmail.com
+
+https://www.codeproject.com/Articles/16447/Neural-Networks-on-C
+

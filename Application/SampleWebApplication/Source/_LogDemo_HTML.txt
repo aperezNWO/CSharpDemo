@@ -1,0 +1,234 @@
+﻿@model IEnumerable<Exam70483Web.Models.Entity.AccessLogEntity>
+@{
+    ViewBag.Title = @"[LOG DEMO]";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILOS STATUS DE OPERACION                    */
+    /*------------------------------------------------*/
+    .modalStatus {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 99; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    .modalStatus-content {
+        text-align: center;
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 1em;
+        border: 1px solid #888;
+        width: 100%; /* Could be more or less, depending on screen size */
+        color: black;
+    }
+</style>
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+        <hr />
+        <div id="gridContainer" style="font-size:xx-small;">
+            <!-- INICIO LISTADO -->
+            @{
+                WebGrid gridInputOutput = new WebGrid
+                (
+                  Model
+                , canPage: true
+                , rowsPerPage: 10
+                , canSort: false
+                );
+            }
+
+            @gridInputOutput.GetHtml(
+
+                mode: WebGridPagerModes.All,
+
+                firstText: "Primero",
+                previousText: "Anterior",
+                nextText: "Siguiente",
+                lastText: "Ultimo",
+
+                tableStyle: "grid-view",
+                headerStyle: "grid-view-header",
+                rowStyle: "grid-view-tr-normal",
+                alternatingRowStyle: "grid-view-tr-alternate",
+                footerStyle: "grid-view-pgr",
+
+                columns: gridInputOutput.Columns
+                (
+                    // 1) ID_COLUMN
+                    // gridInputOutput.Column("Id_Column", "ID_COLUMN"),
+                    // 0) PAGE_NAME
+                    gridInputOutput.Column("PageName", "PAGE NAME"),
+                    // 2) ACCESS_DATE
+                    gridInputOutput.Column("AccessDate", "ACCESS DATE"),
+                    // 3) IP_VALUE
+                    gridInputOutput.Column("IpValue", "IP ORIGEN")
+                )
+             )
+            <!-- FIN LISTADO    -->
+        </div>
+        <hr />
+        <div>
+            <input type="button" id="btnGenerarInforme" value="[Generar Informe XLS]"/>
+        </div>
+        <hr />
+        <div>
+            <a href="#" id="DownloadFile">[Descargar Informe XLS]</a>
+        </div>
+        <hr />
+        <div>
+            Ver Código Fuente : [<a href="javascript:void window.open('../Source/_LogDemo_HTML.txt');" class="DownloadSourceCode">HTML</a>] [<a href="javascript:void window.open('../Source/_LogDemo_CS.txt');">CS</a>]
+        </div>
+        <hr />
+        <a href="../Demos/_Demos?lang=1">Volver al Menú</a>
+        <!-- INICIO VENTANA MODAL TRANSCURSO OPERACION -->
+        <div id="statusWindow" class="modalStatus" style="display:none">
+            <div class="modalStatus-content">
+                ... Procesando ...
+            </div>
+        </div>
+        <!-- FIN VENTANA MODAL TRANSCURSO DE OPERACION -->
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        try
+        {
+            //
+            console.log("ENTRANDO A PAGINA LOG DEMO");
+        }
+        catch (error) {
+            //
+            console.error(error);
+            //
+            alert('error cargando pagina');
+        }
+    });
+    //
+    $("#btnGenerarInforme").click(function () {
+        //
+        _ShowProgressBar();
+        //
+        console.log("GENERANDO INFORME XLS");
+        //
+        var p_url = "GenerarInformeXLS";
+        //
+        $.ajax({
+            url: p_url
+        })
+        .done(function (data) {
+            //
+            console.log("RESULTADO FUNCION : " + data);
+            //
+            if (data === "[ERROR]") 
+            {
+                //
+                alert("ERROR EN FUNCION");
+            }
+            else
+            {
+                //
+                var urlFile      = '../Output/xlsx/' + data;
+                var downloadLink = DebugHostingContent("javascript:void window.open('" + urlFile + "');");
+                //
+                 $("#DownloadFile").attr("href", downloadLink );
+                //
+                alert("SE GENERO CORRECTAMENTE EL ARCHIVO");
+            }
+            //
+            _HideProgressBar();
+            //
+            return true;
+        })
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            //
+            _HideProgressBar();
+            //
+            console.log('ERROR EN FUNCION : ' + textStatus);
+            //
+            console.log('ERROR EN FUNCION : ' + errorThrown);
+            //
+            alert("ERROR EN FUNCION");
+            //
+            return false;
+        });
+    });
+    //
+    //
+    function DebugHostingContent(msg) {
+        //
+        console.log("cadena a evaular : " + msg);
+
+        //
+        let regEx = /(.*)(<!--SCRIPT GENERATED BY SERVER! PLEASE REMOVE-->)(.*\w+.*)(<!--SCRIPT GENERATED BY SERVER! PLEASE REMOVE-->)(.*)/;
+        //
+        var strMsg = msg.replace(/(\r\n|\n|\r)/gm, "");
+        //
+        var matches = strMsg.match(regEx);
+
+        if (matches != null) {
+            //
+            for (var index = 1; index < matches.length; index++) {
+                //
+                var matchValue = matches[index];
+                //        
+                console.log("coincidencia : " + matchValue);
+
+                //
+                if ((matchValue.indexOf("<!--SCRIPT GENERATED BY SERVER! PLEASE REMOVE-->") != -1) && (matchValue.trim() != "")) {
+                    //
+                    strMsg = strMsg.replace(matchValue, "");
+                    //
+                    console.log("REEMPLAZANDO. NUEVA CADENA : " + strMsg);
+                }
+
+                //
+                if ((matchValue.indexOf("<center>") != -1) && (matchValue.trim() != "")) {
+                    //
+                    strMsg = strMsg.replace(matchValue, "");
+                    //
+                    console.log("REEMPLAZANDO. NUEVA CADENA : " + strMsg);
+                }
+            }
+        }
+        else
+            console.log("NO_HAY_COINCIDENCIAS");
+
+        //
+        console.log("CADENA DEPURADA : " + strMsg);
+
+        //
+        return strMsg;
+    }
+    //
+    function _ShowProgressBar() {
+        //
+        var modal = document.getElementById("statusWindow");
+        modal.style.display = "block";
+        //
+        console.log('status window show');
+        //
+    }
+    //
+    function _HideProgressBar() {
+        //
+        var modal = document.getElementById("statusWindow");
+        modal.style.display = "none";
+        modal.style.display = "hidden";
+        //
+        console.log('status window hide');
+        //
+    }
+</script>

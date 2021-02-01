@@ -1,0 +1,508 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Exam70483Library.Managers;
+
+namespace Exam70483Web.Controllers
+{
+    public class AlgorithmManager
+    {
+        #region "Campos"
+        int[]               arreglo;
+        string              randomValues;
+        int                 arraySize;
+        static List<int>    sortedList = new List<int>();
+        List<string>        sortSteps  = new List<string>();
+        #endregion
+
+        #region "Propiedades"
+        public List<string> SortSteps
+        {
+            get 
+            { 
+                return this.sortSteps;  
+            }
+        }
+        #endregion
+
+        #region "Constructor"
+        public AlgorithmManager(string p_randomValues, int p_arraySize)
+        {
+            //-----------------------------------------------------
+            // INICIAR VARIABLES
+            //-----------------------------------------------------
+            this.randomValues = p_randomValues;
+            this.arraySize    = p_arraySize;
+            this.arreglo      = new int[arraySize];
+            this.sortSteps    = new List<string>();
+            //
+            //-----------------------------------------------------
+            // INICIAR ARREGLO
+            //-----------------------------------------------------
+            string[] randomValuesArray = randomValues.Split('|');
+            //
+            for (int i = 0; i < arraySize; i++)
+            {
+                //
+                string randomValue = randomValuesArray[i];
+                //
+                arreglo[i] = Convert.ToInt32(randomValue);
+                //
+            }
+        }
+        #endregion
+
+        #region "Metodos"
+        //
+        public static string GetUnsortedList(int p_arraySize)
+        {
+            //-----------------------------------------------------
+            // DECLARACION DE VARIABLES
+            //-----------------------------------------------------
+            string randomValues = string.Empty;
+            int[] arreglo       = new int[p_arraySize];
+
+            //-----------------------------------------------------
+            // GENERACION ALEATORIA DE NUMEROS
+            //-----------------------------------------------------
+            arreglo            = FisherYates(p_arraySize);
+            //-----------------------------------------------------
+            // JUNTAR ARREGLO EN CADENA
+            //-----------------------------------------------------
+            for (int j = 0; j < p_arraySize; j++)
+            {
+                string separator = (j == 0) ? string.Empty : "|";
+
+                randomValues += separator + arreglo[j];
+            }
+            //
+            LogModel.Log(string.Format("SORT_BENCHMARK. RANDOM_LIST : {0} ", randomValues));
+            //
+            return randomValues;
+        }
+        //
+        public string BubbleSort()
+        {
+            //-----------------------------------------------------
+            // DECLARACION DE VARIABLES
+            //-----------------------------------------------------
+            string sortedValues = string.Empty;
+            //-----------------------------------------------------
+            // ORDENAR ARREGLO
+            //-----------------------------------------------------
+            int temp = 0;
+            //
+            for (int write = 0; write < arreglo.Length; write++)
+            {
+                //
+                for (int sort = 0; sort < arreglo.Length - 1; sort++)
+                {
+                    //
+                    if (arreglo[sort] > arreglo[sort + 1])
+                    {
+                        //
+                        temp              = arreglo[sort + 1];
+                        arreglo[sort + 1] = arreglo[sort];
+                        arreglo[sort]     = temp;
+
+                        //-----------------------------------------------------
+                        // GUARDAR PASO DEL ARREGLO EN MATRIZ DE PASOS
+                        //-----------------------------------------------------
+                        //
+                        string tempValues = string.Empty;
+                        //
+                        for (int j = 0; j < arraySize; j++)
+                        {
+                            //
+                            string separator = (j == 0) ? string.Empty : "|";
+                            //
+                            tempValues += separator + arreglo[j];
+                        }
+                        //
+                        sortSteps.Add(tempValues);
+                    }
+                }
+                //
+            }
+            //-----------------------------------------------------
+            // JUNTAR ARREGLO EN CADENA
+            //-----------------------------------------------------
+            for (int j = 0; j < arraySize; j++)
+            {
+                string separator = (j == 0) ? string.Empty : "|";
+
+                sortedValues += separator + arreglo[j];
+            }
+            //
+            LogModel.Log(string.Format("BUBBLE SORT. STEPS  : {0} ", sortSteps.Count));
+            //
+            LogModel.Log(string.Format("BUBBLE SORT. SORTED : {0} ", sortedValues.ToString()));
+            //
+            return sortedValues;
+        }
+        //
+        private int Partition(int[] arr, int left, int right)
+        {
+            int pivot = arr[left];
+            while (true)
+            {
+
+                while (arr[left] < pivot)
+                {
+                    left++;
+                }
+
+                while (arr[right] > pivot)
+                {
+                    right--;
+                }
+
+                if (left < right)
+                {
+                    if (arr[left] == arr[right]) return right;
+
+                    int temp    = arr[left];
+                    arr[left]   = arr[right];
+                    arr[right]  = temp;
+
+                    //-----------------------------------------------------
+                    // GUARDAR PASO DEL ARREGLO EN MATRIZ DE PASOS
+                    //-----------------------------------------------------
+                    //
+                    string tempValues = string.Empty;
+                    //
+                    for (int j = 0; j < this.arraySize; j++)
+                    {
+                        //
+                        string separator = (j == 0) ? string.Empty : "|";
+                        //
+                        tempValues += separator + arreglo[j];
+                    }
+                    //
+                    sortSteps.Add(tempValues);
+                }
+                else
+                {
+                    return right;
+                }
+            }
+        }
+        //
+        private void Quick_Sort(int[] arr, int left, int right)
+        {
+            //
+            if (left < right)
+            {
+                //
+                int pivot = Partition(arr, left, right);
+                //
+                if (pivot > 1)
+                {
+                    Quick_Sort(arr, left, pivot - 1);
+                }
+                if (pivot + 1 < right)
+                {
+                    Quick_Sort(arr, pivot + 1, right);
+                }
+            }
+
+        }
+        //
+        public string QuickSort()
+        {
+            //
+            string sortedValues = string.Empty;
+            //
+            Quick_Sort(arreglo, 0, arreglo.Length - 1);
+            //
+            //-----------------------------------------------------
+            // JUNTAR ARREGLO EN CADENA
+            //-----------------------------------------------------
+            for (int j = 0; j < arraySize; j++)
+            {
+                string separator = (j == 0) ? string.Empty : "|";
+
+                sortedValues += separator + arreglo[j];
+            }
+            //
+            LogModel.Log(string.Format("QUICK SORT. STEPS  : {0} ", sortSteps.Count));
+            //
+            LogModel.Log(string.Format("QUICK SORT. SORTED : {0} ", sortedValues.ToString()));
+            //
+            return sortedValues;
+        }
+        //
+        public void BinaryTreeSort(int[] array)
+        {
+            //
+            var binarySortTreeNode = new BinarySortTreeNode(array[0]);
+            //
+            for (int i = 1; i < array.Length; i++)
+            {
+                binarySortTreeNode.Insert(array[i]);
+            }
+            //
+            binarySortTreeNode.InorderTraversal();
+            //
+        }
+        //
+        public string TreeSort()
+        {
+            //
+            string sortedValues = string.Empty;
+            //
+            BinaryTreeSort(arreglo);
+            //
+            int[] sortedArray = sortedList.ToArray();
+            //
+            //-----------------------------------------------------
+            // JUNTAR ARREGLO EN CADENA
+            //-----------------------------------------------------
+            for (int j = 0; j < sortedArray.Length; j++)
+            {
+                //
+                string separator = (j == 0) ? string.Empty : "|";
+                //
+                sortedValues += separator + sortedArray[j];
+            }
+            //
+            LogModel.Log(string.Format("TREE SORT. SORTED : {0} ", sortedValues.ToString()));
+            //
+            return sortedValues;
+        }
+        //
+        private static int[] FisherYates(int count)
+        {
+            //
+            Random rand = new Random();
+            //
+            int[] deck = new int[count];
+            //
+            for (byte i = 0; i < count; i++)
+                deck[i] = i;
+            //
+            for (byte i = 0; i <= count - 2; i++)
+            {
+                int j = rand.Next(count - i);
+                if (j > 0)
+                {
+                    int curVal = deck[i];
+                    deck[i] = deck[i + j];
+                    deck[i + j] = curVal;
+                }
+            }
+            //
+            for (int i = count - 1; i >= 1; i--)
+            {
+                int j = rand.Next(i + 1);
+                if (j != i)
+                {
+                    int curVal = deck[i];
+                    deck[i] = deck[j];
+                    deck[j] = curVal;
+                }
+            }
+            //
+            return deck;
+        }
+        //
+        #endregion
+
+        #region "Clases"   
+        public class BinarySortTreeNode
+        {
+            public int Key { get; set; }
+
+            public BinarySortTreeNode Left { get; set; }
+
+            public BinarySortTreeNode Right { get; set; }
+
+            public BinarySortTreeNode(int key)
+            {
+                Key = key;
+            }
+
+            public void Insert(int key)
+            {
+                var tree = new BinarySortTreeNode(key);
+                if (tree.Key <= Key)
+                {
+                    if (Left == null)
+                    {
+                        Left = tree;
+                    }
+                    else
+                    {
+                        Left.Insert(key);
+                    }
+                }
+                else
+                {
+                    if (Right == null)
+                    {
+                        Right = tree;
+                    }
+                    else
+                    {
+                        Right.Insert(key);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// In-order traversal
+            /// </summary>
+            public void InorderTraversal()
+            {
+                Left?.InorderTraversal();
+                sortedList.Add(Key);
+                Right?.InorderTraversal();
+            }
+        }
+        //
+        public class DijkstraAlgoritm
+        {
+
+        }
+        #endregion
+    }    
+    //
+    public class SortBenchMarkDemoController : Controller
+    {
+        #region "Campos"
+        //
+        string constring                = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+        string _documentsLocalDirectory = System.Configuration.ConfigurationManager.AppSettings["DocumentsLocalDirectory"];
+        //
+        int ARRAY_SIZE                  = 25;
+        #endregion
+
+        
+        #region "Sort Benchmark Demo"
+        //
+        public ActionResult _SortBenchMarkDemo()
+        {
+            //-------------------------------------------------
+            // LLAMADO A LA PÁGINA "_SortBenchMarkDemo"
+            //-------------------------------------------------
+
+            try
+            {
+                //
+                string unsortedListRaw = AlgorithmManager.GetUnsortedList
+                    (
+                          ARRAY_SIZE
+                    );
+                //
+                string unsortedListEncoded = HttpUtility.HtmlEncode(unsortedListRaw).Replace("|", "<br/>");
+                //
+                ViewBag.Message            = unsortedListEncoded;
+                //
+                Session["unsortedList"]    = unsortedListRaw;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return View();
+        }
+        //
+        public string _GetSort(ushort p_sortAlgoritm)
+        {
+            //
+            string status     = "OK";
+            //
+            try
+            {
+                //--------------------------------------------------
+                // DECLARACION DE VARIABLES 
+                //--------------------------------------------------
+                //
+                string unsortedList = Session["unsortedList"].ToString();
+                //                
+                AlgorithmManager am = new AlgorithmManager
+                    (
+                          unsortedList
+                        , ARRAY_SIZE
+                    );
+                //
+                switch (p_sortAlgoritm)
+                {
+                    case 1: // BUBBLE SORT
+                        am.BubbleSort();
+                        break;
+                    case 2: // QUICK SORT
+                        am.QuickSort();
+                        break;
+                    case 3: // TREE SORT
+                        am.TreeSort();
+                        break;
+                }
+                //
+                string sortedList = string.Empty;
+                //
+                foreach (string sortStep in am.SortSteps)
+                { 
+                    sortedList += string.Format("■|{0}|", sortStep);
+                }
+                //
+                string sortedListEncoded = HttpUtility.HtmlEncode(sortedList).Replace("|", "<br/>");
+                //
+                status                   = sortedListEncoded;
+                //
+            }
+            catch (Exception ex)
+            {
+                LogModel.Log(string.Format("SORT_BENCHMARK_ERROR. ='{0}'-'{1}'"
+                                                             , ex.Message
+                                                             , ex.StackTrace
+                             ));
+            }
+            //--------------------------------------------------
+            // LOG
+            //--------------------------------------------------
+            LogModel.Log(string.Format("SORT_BENCHMARK . GET SORT : {0}", status));
+            //
+            return status;
+        }
+        //
+        public string _NewSort()
+        {
+            //
+            string status = "OK";
+            try
+            {
+                //
+                string unsortedListRaw = AlgorithmManager.GetUnsortedList
+                        (
+                             ARRAY_SIZE
+                        );
+                //
+                string unsortedListEncoded = HttpUtility.HtmlEncode(unsortedListRaw).Replace("|", "<br/>");
+                //
+                Session["unsortedList"] = unsortedListRaw;
+                //
+                status = unsortedListEncoded;
+                //
+            }
+            catch (Exception ex)
+            {
+                LogModel.Log(
+                             string.Format("REGEX_ÈRROR. ='{0}'-'{1}'"
+                                                      , ex.Message
+                                                      , ex.StackTrace
+                             ));
+            }
+            //--------------------------------------------------
+            // LOG
+            //--------------------------------------------------
+            LogModel.Log(string.Format("SORT_BENCHMARK . NEW SORT : {0}", status));
+            //
+            return status;
+        }
+        //
+        #endregion 
+    }
+}

@@ -1,0 +1,447 @@
+﻿@{
+    ViewBag.Title = @"[UNITTESTING 04]/[RANDOM POINTS] ";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILO PARA CANVAS                             */
+    /*------------------------------------------------*/
+
+    #c 
+    {
+        width: 250px;
+        height: 250px;
+        background-color:#fff;
+    }
+
+    /*------------------------------------------------*/
+    /* ESTILO PARA LISTADO                            */
+    /*------------------------------------------------*/
+    #global 
+    {
+        height: 100px;
+        width: 100%;
+        border: 1px solid #ddd;
+        background: #cccccc;
+        color: #0000ff;
+        overflow-y: scroll;
+    }
+
+    #mensajes {
+        height: auto;
+    }
+</style>
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <canvas id="c" width="250px" height="250px"></canvas>
+    </div>
+    <hr />
+    <p>Listado de Distancias (desde {0})</p>
+    <div id="global">
+        <div id="mensajes">
+            &nbsp;
+        </div>
+    </div>
+    <hr />
+    <div>
+        <input id="NewGraph" type="button" title="[REINICIAR]" value="[REINICIAR]" disabled="disabled"></input>
+        |
+        <input id="GetGraph" type="button" title="[GENERAR]" value="[GENERAR]"></input>
+        <hr />
+        Ver Código Fuente : [<a href="javascript:void window.open('#');" class="DownloadSourceCode">HTML</a>] [<a href="javascript:void window.open('#');">CS</a>]
+    </div>
+</div>
+
+<script>
+    //
+    var rectSize   = 10;
+    var screenSize = 250;
+    var c_canvas   = document.getElementById("c");
+    var context    = c_canvas.getContext("2d");
+    //
+    function DrawGrid()
+    {
+        //
+        context.clearRect(0, 0, c_canvas.width, c_canvas.height);
+        //
+        for (var x = 0.5; x < 501; x += rectSize) {
+            context.moveTo(x, 0);
+            context.lineTo(x, 381);
+        }
+        //
+        for (var y = 0.5; y < 381; y += rectSize) {
+            context.moveTo(0  , y);
+            context.lineTo(500, y);
+        }
+        //
+        context.strokeStyle = "#cccccc";
+        context.stroke();
+        //
+    }
+    //
+    function pythagorean(sideA, sideB)
+    {
+        return Math.sqrt(Math.pow(sideA, 2) + Math.pow(sideB, 2)).toFixed(2);
+    }
+    //
+    function DrawLine(x1, y1, x2, y2, drawDistance/*, sourceName, destName*/, p_hipotemuza)
+    {
+        //--------------------------
+        // Escalar coordenadas
+        //--------------------------
+        x1 = x1 * rectSize;
+        x2 = x2 * rectSize;
+        y1 = y1 * rectSize;
+        y2 = y2 * rectSize;
+
+        //--------------------------
+        // Ajustar coordenada y
+        //--------------------------
+        var _y1 = (screenSize - y1);
+        var _y2 = (screenSize - y2);
+
+
+        //--------------------------
+        // Dibujar Linea
+        //--------------------------
+        context.setLineDash([]);/*linea continua*/
+        context.beginPath();
+        context.moveTo(x1, _y1);
+        context.lineTo(x2, _y2);
+        context.strokeStyle = "#654321";
+        context.stroke();
+
+
+        //--------------------------
+        // Dibujar Distancia
+        //--------------------------
+        if (drawDistance == true)
+        {
+            //
+            console.log("LINE INFO");
+            //
+            // TEOREMA DE PITAGORAS
+            // hipotemuza = raiz ((cateto1 1 ^ 2) + (cateto_2 ^ 2))
+            var cateto_x   = Math.abs(x2  -  x1);
+            var cateto_y   = Math.abs(_y2 - _y1);
+            var hipotemuza = pythagorean(cateto_x, cateto_y) / rectSize;
+            //
+            console.log("HIPOTEMUZA : " + hipotemuza);
+            //
+            var xd = 0;
+            //
+            if (x1 < x2)
+            {
+                xd = x1 + (cateto_x / 2);
+            }
+            else
+            {
+                xd = x1 - (cateto_x / 2);
+            }
+
+
+            //
+            var yd = 0;
+            //
+            if (_y1 > y2)
+            {
+                yd = _y1 - (cateto_y / 2);
+            }
+            else
+            {
+                yd = _y1 + (cateto_y / 2);
+            }
+
+            var fullPointName = "<" + p_hipotemuza + ">";
+            //    
+            context.font      = "xx-small Arial";
+            context.fillText(fullPointName, xd, yd);
+        }
+    }
+    //
+    function DrawLines(pointArray, matrixArray)
+    {
+        //
+        console.log("DRAWING_LINES");
+
+        //--------------------------------------------------------------------------
+        // CREAR MATRIZ
+        //--------------------------------------------------------------------------
+
+        //
+        // MATRIX : {0,16,0,0,0,0,0,0,0}|{16,0,21,0,0,12,0,18,0}|{0,21,0,0,18,0,10,0,19}|{0,0,0,0,20,2,5,0,0}|{0,0,18,20,0,19,0,4,0}|{0,12,0,2,19,0,5,17,0}|{0,0,10,5,0,5,0,0,0}|{0,18,0,0,4,17,0,0,2}|{0,0,19,0,0,0,0,2,0}
+        //
+        var matrix = new Array(matrixArray.length);
+        //
+        for (index = 0; index < matrixArray.length; index++)
+        {
+            //
+            matrix[index] = new Array(matrixArray.length);
+        }
+        //
+        for (index_x = 0; index_x < matrixArray.length; index_x++)
+        {
+            //
+            var matrixLine = matrixArray[index_x].replace("{", "").replace("}", "").split(",");
+            //
+            console.log("MATRIX ROW " + matrixLine);
+            //
+            for (index_y = 0; index_y < matrixLine.length; index_y++)
+            {
+                //
+                var pointValue           = matrixLine[index_y];
+                //
+                matrix[index_x][index_y] = pointValue;
+                //
+            }
+        }
+
+        //--------------------------------------------------------------------------
+        // RECORRER MATRIZ
+        //--------------------------------------------------------------------------
+        //
+        for (index_x = 0; index_x < matrixArray.length; index_x++)
+        {
+            //
+            for (index_y = (index_x + 1); index_y < matrixArray.length; index_y++)
+            {
+                //
+                var pointValue = matrix[index_x][ index_y];
+                //
+                console.log("_MATRIX (" + index_x + "," + index_y + ") = " + pointValue);
+                //
+                // POINTS  : [11,7]|[3,21]|[22,11]|[13,19]|[8,0]|[15,18]|[12,14]|[6,3]|[4,4]
+                //
+                if (pointValue != "0")
+                {
+                    //
+                    var pointSource = pointArray[index_x].replace("[","").replace("]", "").split(",");
+                    var pointDest   = pointArray[index_y].replace("[","").replace("]", "").split(",");;
+                    //
+                    console.log("_DRAWING LINE FOR (" + pointValue + " )");
+                    //
+                    var x1 = parseInt(pointSource[0]);
+                    var y1 = parseInt(pointSource[1]);
+                    var x2 = parseInt(pointDest[0]);
+                    var y2 = parseInt(pointDest[1]);
+
+                    var drawDistance = new Boolean(false);
+                    var sourceName   = pointArray[index_x];
+                    var destName     = pointArray[index_y];
+
+                    //
+                    DrawLine(x1, y1, x2, y2, drawDistance, /*sourceName, destName*/ pointValue);
+                }
+            }
+        }
+    }
+    //
+    function DrawPoint(pointName, x, y)
+    {
+        //--------------------------
+        // Escalar coordenadas
+        //--------------------------
+        x = x * rectSize;
+        y = y * rectSize;
+
+        //-------------------
+        // Linea vertical
+        //-------------------
+        context.setLineDash([]);/*linea continua*/
+        context.beginPath();
+        context.moveTo(x, (screenSize - y) - (rectSize/2));
+        context.lineTo(x, (screenSize - y) + (rectSize/2));
+        context.strokeStyle = "#ff0000";
+        context.stroke();
+        //-------------------
+        // Linea horizontal
+        //-------------------
+        context.setLineDash([]);/*linea continua*/
+        context.beginPath();
+        context.moveTo(x - (rectSize/2), (screenSize - y));
+        context.lineTo(x + (rectSize/2), (screenSize - y));
+        context.strokeStyle = "#ff0000";
+        context.stroke();
+        //-------------------
+        // Nombre del Punto
+        //-------------------
+        var fullPointName = pointName + "(" + (x / rectSize) + "," + (y / rectSize) + ")";
+        context.font      = "x-small Arial";
+        context.fillText(fullPointName, (x + (rectSize / 2)), (screenSize - y));
+        //
+    }
+    //
+    function DrawPoints(points)
+    {
+        //
+        for (index = 0; index < points.length; index++)
+        {
+            //
+            var coordinates     = '';
+            coordinates         = points[index];
+            coordinates         = coordinates.replace('[', '');
+            coordinates         = coordinates.replace(']', '');
+            //
+            var coordinateArray = coordinates.split(',');
+            var coordinate_x    = coordinateArray[0];
+            var coordinate_y    = coordinateArray[1];
+            //
+            console.log("coordinate [" + index + "] : " + points[index] + " ");
+            //
+            DrawPoint(index, coordinate_x, coordinate_y);
+        }
+    }
+    //
+    function _ResetControls()
+    {
+        //
+        $('#NewGraph').attr('disabled', true);
+        //
+        $('#GetGraph').attr('disabled', false);
+        //
+        $('#mensajes').html('[PENDIENTE_GENERAR]');
+        //
+        DrawGrid();
+    }
+    //
+    $(document).ready()
+    {
+        try
+        {
+            //
+            console.log('UNIT TESTING 4 - LOADING PAGE');
+            //
+            _ResetControls();
+            //
+        }
+        catch (error)
+        {
+            //
+            console.error(error);
+            //
+            alert('error cargando pagina');
+            //
+        }
+    }
+    //
+    $("#GetGraph").click(function ()
+    {
+        try
+        {
+            //
+            var p_url = "GenerateRandomVertex";
+            //
+            $.ajax(
+                {
+                    url: p_url
+                })
+                .done(function (data)
+                {
+                    //
+                    console.log('UNIT_TESTING_04 . GET RANDOM VERTEX : ' + data);
+                    //
+
+                    //------------------------------------------------------------
+                    // OBTENER PUNTOS
+                    //------------------------------------------------------------
+                    var dataArray    = data.split("■");
+                    //
+                    var pointsString = dataArray[0];
+                    //
+                    console.log('POINTS : ' + pointsString);
+                    //
+                    var pointArray = pointsString.split('|');
+                    //
+                    DrawGrid();
+                    //
+                    DrawPoints(pointArray);
+
+                    //-------------------------------------------------------------
+                    // OBTENER MATRIZ - DIBUJAR LINEAS
+                    //-------------------------------------------------------------
+
+                    var matrixString        = dataArray[1];
+                    //
+                    console.log('MATRIX : ' + matrixString);
+                    //
+                    var matrixArray         = matrixString.split('|');
+                    //
+                    DrawLines(pointArray, matrixArray );
+
+                    //-------------------------------------------------------------
+                    // OBTENER VERTICES DE DISTANCIAS
+                    //-------------------------------------------------------------
+
+                    var vertexString        = dataArray[2];
+                    //
+                    console.log('VERTEX : ' + vertexString);
+
+                    //-------------------------------------------------------------
+                    // CONFIGURA CONTROLES
+                    //-------------------------------------------------------------
+                    $('#mensajes').html(vertexString);
+                    //
+                    $('#NewGraph').attr('disabled', false);
+                    //
+                    $('#GetGraph').attr('disabled', true);
+
+
+                    //
+                    return true;
+                    //
+                })
+                .fail(function (jqXHR, textStatus, errorThrown)
+                {
+                    //
+                    console.log('ERROR EN UNIT_TESTING_04 : ' + textStatus);
+                    //
+                    console.log('ERROR EN UNIT_TESTING_04 : ' + errorThrown);
+                    //
+                    alert("ERROR EN UNIT_TESTING_04");
+                    //
+                    return false;
+                });
+                //
+        }
+        catch (error)
+        {
+            //
+            alert("ERROR EN PROCEDIMIENTO");
+            //
+            console.error(error);
+            //
+            return false;
+            //
+        }
+        //
+    });
+    //
+    $("#NewGraph").click(function ()
+    {
+        try
+        {
+            //
+            _ResetControls();
+            //
+        }
+        catch (error)
+        {
+            //
+            alert("ERROR EN PROCEDIMIENTO");
+            //
+            console.error(error);
+            //
+            return false;
+            //
+        }
+        //
+    });
+    //
+</script>

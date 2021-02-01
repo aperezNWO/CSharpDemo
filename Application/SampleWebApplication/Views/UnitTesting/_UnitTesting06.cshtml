@@ -1,0 +1,76 @@
+﻿@{
+    ViewBag.Title = @"[UNITTESTING 06]/[TypeScript] ";
+}
+
+<style>
+</style>
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+    </div>
+    <hr />
+    <div>
+        [SOME_FUNCTIONALITY_HERE]
+    </div>
+    <hr />
+    <div>
+        <input id="NewData" type="button" title="[REINICIAR]" value="[REINICIAR]" disabled="disabled"></input>
+        |
+        <input id="SetData" type="button" title="[GENERAR]" value="[GENERAR]"></input>
+    </div>
+</div>
+
+<script src="~/Scripts/TypeScript/UnitTesting06.js"></script>
+
+<script>
+    //
+    $('document').ready(function () {
+        try {
+            //
+            console.log("LOADING UNITTETING06 - TYPESCRIPT");
+        }
+        catch (e) {
+            //
+            console.log("ERROR EN UNITTETING06 - TYPESCRIPT");
+            //
+            alert("ERROR EN UNITTETING06" + e);
+        }
+    });
+    //
+    $("#SetData").click(function () {
+        try {
+            //
+            console.log("SET DATA : " + user.name);
+
+            //
+            user.id++; // user.id="0" >> error
+            console.log("User|Id  :  " + user.id);
+            console.log("User|Name:  " + user.name);
+
+            //
+            console.log("area " + area);
+
+            //
+            console.log("userAccount|name         : " + userAccount.name);
+
+            //
+            userAccount.GetAdminUser();
+            console.log("getting user ...");
+
+            //
+            deleteUser(user);
+            //
+            console.log("deleting user ... ");
+        }
+        catch (e) {
+            //
+            console.log("ERROR EN SET DATA - TYPESCRIPT");
+            //
+            alert("ERROR EN SET DATA " + e);
+        }
+    });
+</script>
+

@@ -1,0 +1,154 @@
+﻿@{
+
+    ViewBag.Title = @"[UNIT TESTING 02] / [CANVAS TEST] ";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILO PARA CANVAS                             */
+    /*------------------------------------------------*/
+
+    #c {
+        width: 250px;
+        height: 250px;
+        background-color:#fff;
+    }
+
+    /*------------------------------------------------*/
+    /* ESTILO PARA LISTADO                            */
+    /*------------------------------------------------*/
+    #global {
+        height: 100px;
+        width: 100%;
+        border: 1px solid #ddd;
+        background: #cccccc;
+        color: #0000ff;
+        overflow-y: scroll;
+    }
+
+    #mensajes {
+        height: auto;
+    }
+</style>
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <canvas id="c" width="250px" height="250px"></canvas>
+    </div>
+    <hr />
+    <div id="XmlContent">
+        <div id="global">
+            <div id="mensajes">
+                @Html.Raw(@ViewBag.Message)
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <input id="NewSort" type="button" title="[REINICIAR]" value="[REINICIAR]" disabled="disabled"></input>
+        |
+        <input id="GetSort" type="button" title="[ORDENAR]" value="[ORDENAR]"></input>
+        <hr />
+        Ver Código Fuente : [<a href="javascript:void window.open('#');" class="DownloadSourceCode">HTML</a>] [<a href="javascript:void window.open('#');">CS</a>]
+    </div>
+</div>
+<script>
+    //
+    var rectSize   = 10;
+    var screenSize = 250;
+    var c_canvas   = document.getElementById("c");
+    var context    = c_canvas.getContext("2d");
+    //
+    $(document).ready()
+    {
+        //
+        console.log('LOADING GRID');
+        //
+        DrawGrid();
+        //
+        DrawRectangles();
+    }
+    //
+    function DrawGrid() {
+        //
+        for (var x = 0.5; x < 501; x += rectSize) {
+            context.moveTo(x, 0);
+            context.lineTo(x, 381);
+        }
+        //
+        for (var y = 0.5; y < 381; y += rectSize) {
+            context.moveTo(0, y);
+            context.lineTo(500, y);
+        }
+        //
+        context.strokeStyle = "#cccccc";
+        context.stroke();
+        //
+    }
+    //
+    function DrawRectangles()
+    {
+        //
+        var stringArray = $('#mensajes').html().split("<br>");
+        //
+        console.log('ARREGLO : ' + stringArray);
+        //
+        context.fillStyle = "#ccc";
+        //
+        for (var index = 0; index < 25; index++) {
+            //
+            var x         = 0 + (rectSize * index);
+            var y         = screenSize - (stringArray[index] * rectSize);
+            var length    = (rectSize);
+            var height    = stringArray[index] * rectSize;
+            //
+            context.fillRect(x , y, length , height );
+        }
+        //
+    }
+    //
+    $("#GetSort").click(function ()
+    {
+        try
+        {
+            //
+            var p_url = "_GetSortStep";
+            //
+            $.ajax(
+                {
+                    url: p_url
+                })
+                .done(function (data) {
+                    //
+                    console.log('SORT_BENCHMARK . GET SORT : ' + data);
+                    //
+                    return true;
+                })
+                .fail(function (jqXHR, textStatus, errorThrown)
+                {
+                    //
+                    console.log('ERROR EN SORT_BENCHMARK : ' + textStatus);
+                    //
+                    console.log('ERROR EN SORT_BENCHMARK : ' + errorThrown);
+                    //
+                    alert("ERROR EN SORT_BENCHMARK");
+                    //
+                    return false;
+                });
+        }
+        catch (error) {
+            //
+            alert("ERROR EN PROCEDIMIENTO");
+            //
+            console.error(error);
+            //
+            return false;
+        }
+        //
+    });
+</script>

@@ -1,0 +1,21 @@
+﻿@{
+    ViewBag.Title   = @"[MCSD] - [Microsoft Certified Solution Developer]";
+    ViewBag.Message = @"[Certification Path]";
+}@Page
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+            <p>@ViewBag.Message</p>
+        </div>
+    </div>
+    <div>
+        <p><a href="https://docs.microsoft.com/es-es/learn/certifications/mcsa-web-applications-certification">[MCSA - WEB APPLICATIONS]</a></p>
+        <ul class="nav navbar-nav">
+            <li>@Html.ActionLink("[Exam 70-483] - [Programming in C#]"  , "_Exam70483" , "MCSD")</li><br />
+            <li>@Html.ActionLink("[Exam 70-486] - [ASP.NET MVC]"        , "_MCSD"      , "MCSD")</li><br />
+            <li>@Html.ActionLink("[Exam 70-480] - [HTML/CSS/JSCRIPT]"   , "_MCSD"      , "MCSD")</li><br />
+        </ul>
+    </div>
+</div>

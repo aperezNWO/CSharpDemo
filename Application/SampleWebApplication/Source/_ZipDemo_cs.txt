@@ -1,0 +1,249 @@
+﻿using Exam70483Library;
+using Exam70483Library.DataAccess;
+using Exam70483Library.Managers;
+using Exam70483Web.Models;
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+
+namespace Exam70483Web.Controllers
+{
+    public class FileManager
+    {
+        #region "Campos"
+        private string _uploadedFilePath;
+        private string _destionationDirectory;
+        private string _extensionDocumento;
+        #endregion
+
+        #region "Constructor"
+        public FileManager
+        (
+            string uploadedFilePath,
+            string destinationDirectory,
+            string extensionDocumento
+        )
+        {
+            this._uploadedFilePath = uploadedFilePath;
+            this._destionationDirectory = destinationDirectory;
+            this._extensionDocumento = extensionDocumento;
+        }
+        #endregion
+
+        #region "Métodos"
+        //
+        private string GetFileName()
+        {
+            //
+            string fileName = string.Format("{0}{1}.{2}"
+             , System.Guid.NewGuid().ToString()
+             , DateTime.Now.ToString(Globals.DateFormatShortTimestamp)
+             , _extensionDocumento);
+            //
+            return fileName;
+
+        }
+        //
+        public string SetZipFile()
+        {
+            //------------------------------------------------------------------------------------------
+            // DECLARACION DE VARIABLES
+            //------------------------------------------------------------------------------------------
+
+            string _uploadedFileName          = Path.GetFileName(_uploadedFilePath);
+            string _sourceDirectoryName       = _uploadedFileName.Replace(".","_");
+            string _destionationTempDir       = string.Format(@"{0}\{1}"    , _destionationDirectory, _sourceDirectoryName);
+            string _destionationTempPath      = string.Format(@"{0}\{1}\{2}", _destionationDirectory, _sourceDirectoryName, _uploadedFileName);
+            string _destionationFileName      = GetFileName();
+            string _destinationFullPath       = string.Format(@"{0}\{1}"
+                , _destionationDirectory
+                , _destionationFileName
+                );
+            string _destionationUrl           = string.Format("../Output/zip/{0}"
+                , _destionationFileName
+            );
+
+            //------------------------------------------------------------------------------------------
+            // CREACION DE DIRECTORIOS / ARCHIVOS TEMPORALES
+            //------------------------------------------------------------------------------------------
+            //
+            Directory.CreateDirectory(_destionationTempDir);
+            //
+            bool overWriteFile = true;
+            File.Copy(_uploadedFilePath, _destionationTempPath,overWriteFile);
+            //
+            ZipFile.CreateFromDirectory(_destionationTempDir, _destinationFullPath);
+
+
+            //
+            return _destionationUrl;
+            //
+        }
+        #endregion
+    }
+
+    //
+    public class DemosController : Controller
+    {
+        #region "Campos"
+        //
+        string constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+        string _documentsLocalDirectory = System.Configuration.ConfigurationManager.AppSettings["DocumentsLocalDirectory"];
+        #endregion
+
+        #region "Metodos"
+
+        #region "Raiz"
+        //
+        public ActionResult _Demos()
+        {
+            try
+            {
+                //string constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            return View();
+        }
+        //
+        #endregion
+
+        //...
+
+        #region "ZIP ASYNC DEMO"
+        //
+        public ActionResult _ZipDemo()
+        {
+            //-------------------------------------------------
+            // LLAMADO A LA PÁGINA 
+            //-------------------------------------------------
+
+            try
+            {
+                //
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            return View();
+        }
+        //
+        [HttpPost]
+        public ActionResult _ZipDemo(HttpPostedFileBase UploadFileCtrl)
+        {
+            //
+            if (UploadFileCtrl != null && UploadFileCtrl.ContentLength > 0)
+                //
+                try
+                {
+                    //
+                    string path = Path.Combine(Server.MapPath("~/Output/UploadedFiles"),
+                                               Path.GetFileName(UploadFileCtrl.FileName));
+                    //
+                    TempData["UploadedFileName"] = UploadFileCtrl.FileName;
+                    //
+                    UploadFileCtrl.SaveAs(path);
+                    //
+                    ViewBag.Message = "[SE CARGO EL ARCHIVO CORRECTAMENTE]";
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Message = string.Format("[ERROR EN CARGA DE ARCHIVO : {0}",ex.Message.ToString());
+                }
+            else
+            {
+                ViewBag.Message = "[DEBE ESPECIFICAR UN ARCHIVO]";
+            }
+            return View();
+        }
+        //
+        public Task<String> SetZipAsync()
+        {
+            return Task<String>.Factory.StartNew(() =>
+            {
+                //
+                string status = "ok";
+                //
+                try
+                {
+                    //------------------------------------------------------------------------------------------------------
+                    // OBTENER ARCHIVO
+                    //------------------------------------------------------------------------------------------------------
+
+                    //------------------------------------------------------------------------------------------------------
+                    // DECLARACION DE VARIABLES
+                    //------------------------------------------------------------------------------------------------------
+                    string fileName = TempData["UploadedFileName"].ToString();
+                    string uploadedFilePath = Path.Combine(Server.MapPath("~/Output/UploadedFiles"),
+                                                   Path.GetFileName(fileName));
+                    string extensionDocumento = "zip";
+                    string destionationDirectory = Server.MapPath(string.Format("~/Output/{0}", extensionDocumento));
+
+
+                    //------------------------------------------------------------------------------------------------------
+                    // INSTANCIACION DE CLASE 
+                    //------------------------------------------------------------------------------------------------------
+                    //
+                    FileManager fileManager = new FileManager
+                        (
+                              uploadedFilePath
+                            , destionationDirectory
+                            , extensionDocumento
+                        );
+
+                    status = fileManager.SetZipFile();
+
+                    //------------------------------------------------------------------------------------------------------
+                    // LOG
+                    //------------------------------------------------------------------------------------------------------
+                    using (var connection = (new SqlConnection(constring)))
+                    {
+                        connection.Open();
+
+                        LogModel.Submit_Tsql_NonQuery(connection, 
+                           LogModel.InsertAccessLog("ZIP_ASYNC"));
+
+                        LogModel.Submit_Tsql_NonQuery(connection, 
+                           LogModel.InsertAccessLog(string.Format("FILE_TO_ZIP : {0}", uploadedFilePath)));
+
+                        LogModel.Submit_Tsql_NonQuery(connection, 
+                           LogModel.InsertAccessLog(string.Format("ZIPPED_FILE : {0}", status)));
+
+                    }
+                    //
+                }
+                catch (Exception e)
+                {
+                    //
+                    string errorMsg = e.Message + " " + e.StackTrace;
+                    //
+                    using (var connection = new SqlConnection(constring))
+                    {
+                        connection.Open();
+
+                        LogModel.Submit_Tsql_NonQuery(connection, 
+                           LogModel.InsertAccessLog(string.Format("ZIP_ERROR : {0}", errorMsg)));
+                    }
+                    //
+                    status = errorMsg;
+                }
+
+                return status;
+
+            });
+        }
+
+        #endregion
+
+        #endregion
+    }
+}

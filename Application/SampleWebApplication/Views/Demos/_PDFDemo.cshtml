@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = @"[PDF DEMO - iTextSharp Library]";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILOS STATUS DE OPERACION                    */
+    /*------------------------------------------------*/
+    .modalStatus {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 99; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    .modalStatus-content {
+        text-align: center;
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 1em;
+        border: 1px solid #888;
+        width: 100%; /* Could be more or less, depending on screen size */
+        color: black;
+    }
+    /*-----------------------------------------------*/
+    /* ESTILO PARA INPUT */
+    /*-----------------------------------------------*/
+    .inputPDF 
+    {
+        width:100%;
+    }
+</style>
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+            <p>@ViewBag.Message</p>
+            <hr />
+            <div>
+                NOMBRE COMPLETO : <input type="text" class="inputPDF" id="subjectName" value="PABLO ALEJANDRO PEREZ ACOSTA" />
+            </div>
+            <hr />
+            <input id="GetPdf" type="button" title="[OBTENER PDF]" value="[OBTENER PDF]"></input>
+            <hr />
+            <a href="#" id="DownloadFile">Descargar PDF</a>
+            <hr />
+            <a href="../Demos/_DemosIndex?lang=1">Volver al Menú</a>
+            <!-- INICIO VENTANA MODAL TRANSCURSO OPERACION -->
+            <div id="statusWindow" class="modalStatus" style="display:none">
+                <div class="modalStatus-content">
+                    ... Procesando ...
+                </div>
+            </div>
+            <!-- FIN VENTANA MODAL TRANSCURSO DE OPERACION -->
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    //
+    $(document).ready(function () {
+        console.log("LOADING PAGE 5");
+    });
+    //
+    //
+    function _ShowProgressBar() {
+        //
+        var modal = document.getElementById("statusWindow");
+        modal.style.display = "block";
+
+        console.log('status window show');
+        //
+    }
+    // 
+    function _HideProgressBar() {
+        //
+        var modal = document.getElementById("statusWindow");
+        modal.style.display = "none";
+        modal.style.display = "hidden";
+
+        console.log('status window hide');
+        //
+    }
+    //
+    $("#GetPdf").click(function () {
+        try {
+            //
+            _ShowProgressBar();
+            //
+            var subjectName = $("#subjectName").val();
+            var url         = "_GetPdf?subjectName=" + subjectName;
+            //
+            $.get(url, function (data) {
+                //
+                console.log("DATA   : " + data);
+                //
+                var resultArray = data.split("|");
+                //
+                if (resultArray.length > 0) {
+                    //
+                    _HideProgressBar();
+                    //
+                    var fileName = resultArray[1];
+                    var filePath = resultArray[2];
+                    var imagePath = resultArray[3];
+                    //
+                    console.log("PDF FILENAME  : " + fileName);
+                    //
+                    console.log("PDF PATH      : " + filePath);
+                    //
+                    console.log("IMAGE PATH    : " + imagePath);
+                    //
+                    $("#DownloadFile").attr("href", "javascript:void window.open('../output/pdf/" + fileName + "');");
+                    //
+                    alert("SE GENERO CORRECTAMENTE EL ARCHIVO");
+                }
+                else {
+                    //
+                    alert("ERROR EN ARCHIVO PDF");
+                    //
+                    console.error("ERROR_PDF : " + data);
+                }
+
+            });
+            //
+            console.log("Getting pdf for " + subjectName);
+
+        }
+        catch (error) {
+            //
+            alert("ERROR EN ARCHIVO PDF");
+            //
+            console.error(error);
+        }
+        //
+    });
+</script>

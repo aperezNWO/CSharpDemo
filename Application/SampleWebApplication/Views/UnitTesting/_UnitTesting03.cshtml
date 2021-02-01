@@ -1,0 +1,271 @@
+﻿@{
+
+    ViewBag.Title = @"[UNIT TESTING 03] / [CANVAS TEST] ";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILO PARA CANVAS                             */
+    /*------------------------------------------------*/
+
+    #c 
+    {
+        width: 250px;
+        height: 250px;
+        background-color:#fff;
+    }
+
+    /*------------------------------------------------*/
+    /* ESTILO PARA LISTADO                            */
+    /*------------------------------------------------*/
+    #global 
+    {
+        height: 100px;
+        width: 100%;
+        border: 1px solid #ddd;
+        background: #cccccc;
+        color: #0000ff;
+        overflow-y: scroll;
+    }
+
+    #mensajes {
+        height: auto;
+    }
+</style>
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <canvas id="c" width="250px" height="250px"></canvas>
+    </div>
+    <hr />
+    <div id="XmlContent">
+        <div id="global">
+            <div id="mensajes">
+                @Html.Raw(@ViewBag.Message)
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <input id="NewSort" type="button" title="[REINICIAR]" value="[REINICIAR]" disabled="disabled"></input>
+        |
+        <input id="GetSort" type="button" title="[ORDENAR]" value="[ORDENAR]"></input>
+        <hr />
+        Ver Código Fuente : [<a href="javascript:void window.open('#');" class="DownloadSourceCode">HTML</a>] [<a href="javascript:void window.open('#');">CS</a>]
+    </div>
+</div>
+<script>
+    //
+    var rectSize   = 10;
+    var screenSize = 250;
+    var c_canvas   = document.getElementById("c");
+    var context    = c_canvas.getContext("2d");
+    //
+    function DrawGrid()
+    {
+        //
+        for (var x = 0.5; x < 501; x += rectSize) {
+            context.moveTo(x, 0);
+            context.lineTo(x, 381);
+        }
+        //
+        for (var y = 0.5; y < 381; y += rectSize) {
+            context.moveTo(0  , y);
+            context.lineTo(500, y);
+        }
+        //
+        context.strokeStyle = "#cccccc";
+        context.stroke();
+        //
+    }
+    //
+    function pythagorean(sideA, sideB)
+    {
+        return Math.sqrt(Math.pow(sideA, 2) + Math.pow(sideB, 2)).toFixed(2);
+    }
+    //
+    function DrawLine(x1, y1, x2, y2, drawDistance, sourceName, destName)
+    {
+        //--------------------------
+        // Escalar coordenadas
+        //--------------------------
+        x1 = x1 * rectSize;
+        x2 = x2 * rectSize;
+        y1 = y1 * rectSize;
+        y2 = y2 * rectSize;
+
+        //--------------------------
+        // Ajustar coordenada y
+        //--------------------------
+        var _y1 = (screenSize - y1);
+        var _y2 = (screenSize - y2);
+
+
+        //--------------------------
+        // Dibujar Linea
+        //--------------------------
+        context.setLineDash([]);/*linea continua*/
+        context.beginPath();
+        context.moveTo(x1, _y1);
+        context.lineTo(x2, _y2);
+        context.strokeStyle = "#654321";
+        context.stroke();
+        //
+        if (drawDistance == true)
+        {
+            //
+            console.log("LINE INFO");
+            //
+            // TEOREMA DE PITAGORAS
+            // hipotemuza = raiz ((cateto1 1 ^ 2) + (cateto_2 ^ 2))
+            var cateto_x   = Math.abs(x2  -  x1);
+            var cateto_y   = Math.abs(_y2 - _y1);
+            var hipotemuza = pythagorean(cateto_x, cateto_y) / rectSize;
+            //
+            console.log("HIPOTEMUZA : " + hipotemuza);
+            //
+            var xd = x1  + (cateto_x / 2);
+            var yd = _y1 - (cateto_y / 2);
+            //
+            var fullPointName = "[" + sourceName + "," + destName + "] - " + "<" + hipotemuza + ">";
+            context.font = "xx-small Arial";
+            context.fillText(fullPointName, xd, yd); 
+        }
+    }
+    //
+    function DrawPoint(pointName, x, y)
+    {
+        //--------------------------
+        // Escalar coordenadas
+        //--------------------------
+        x = x * rectSize;
+        y = y * rectSize;
+
+        //--------------------------
+        // Linea punteada horizontal
+        //--------------------------
+        context.setLineDash([5, 3]);/*dashes are 5px and spaces are 3px*/
+        context.beginPath();
+        context.moveTo(0, screenSize - y);
+        context.lineTo(x, screenSize - y);
+        context.strokeStyle = "#008f39"; // verde
+        context.stroke();
+        //-------------------------
+        // Linea punteada vertical
+        //-------------------------
+        context.setLineDash([5, 3]);/*dashes are 5px and spaces are 3px*/
+        context.beginPath();
+        context.moveTo(x, screenSize);
+        context.lineTo(x, screenSize - y);
+        context.strokeStyle = "#008f39"; // verde
+        context.stroke();
+        //-------------------
+        // Linea vertical
+        //-------------------
+        context.setLineDash([]);/*linea continua*/
+        context.beginPath();
+        context.moveTo(x, (screenSize - y) - rectSize);
+        context.lineTo(x, (screenSize - y) + rectSize);
+        context.strokeStyle = "#ff0000";
+        context.stroke();
+        //-------------------
+        // Linea horizontal
+        //-------------------
+        context.setLineDash([]);/*linea continua*/
+        context.beginPath();
+        context.moveTo(x - rectSize, (screenSize - y));
+        context.lineTo(x + rectSize, (screenSize - y));
+        context.strokeStyle = "#ff0000";
+        context.stroke();
+        //-------------------
+        // Nombre del Punto
+        //-------------------
+        var fullPointName = pointName + "(" + (x / rectSize) + "," + (y / rectSize) + ")";
+        context.font      = "xx-small Arial";
+        context.fillText(fullPointName, (x + (rectSize / 2)), (screenSize - y)); 
+        //
+    }
+    //
+    //
+    $(document).ready()
+    {
+        try {
+            //
+            var x1 = 6;
+            var y1 = 6;
+            var x2 = 12;
+            var y2 = 12;
+            var distanceInfo = new Boolean(true);
+            //
+            console.log('UNIT TESTING 03');
+            //
+            DrawGrid();
+            //
+            DrawPoint("0", x1, y1);
+            //
+            DrawPoint("1", x2, y2);
+            // 
+            DrawLine(x1, y1, x2, y2, distanceInfo,"0","1");
+            //
+        }
+        catch (error)
+        {
+            //
+            console.error(error);
+            //
+            alert('error cargando pagina');
+            //
+        }
+    }
+    //
+    $("#GetSort").click(function ()
+    {
+        try
+        {
+            //
+            var p_url = "_GetSortStep";
+            //
+            $.ajax(
+                {
+                    url: p_url
+                })
+                .done(function (data)
+                {
+                    //
+                    console.log('SORT_BENCHMARK . GET SORT : ' + data);
+                    //
+                    return true;
+                    //
+                })
+                .fail(function (jqXHR, textStatus, errorThrown)
+                {
+                    //
+                    console.log('ERROR EN SORT_BENCHMARK : ' + textStatus);
+                    //
+                    console.log('ERROR EN SORT_BENCHMARK : ' + errorThrown);
+                    //
+                    alert("ERROR EN SORT_BENCHMARK");
+                    //
+                    return false;
+                });
+                //
+        }
+        catch (error)
+        {
+            //
+            alert("ERROR EN PROCEDIMIENTO");
+            //
+            console.error(error);
+            //
+            return false;
+            //
+        }
+        //
+    });
+    //
+</script>

@@ -1,0 +1,96 @@
+﻿@{
+
+    ViewBag.Title = @"[UNIT TESTING 01] / [CANVAS TEST] ";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILO PARA CANVAS                             */
+    /*------------------------------------------------*/
+
+    #c 
+    {
+        width: 250px;
+        height: 250px;
+        background-color:#fff;
+    }
+
+    /*------------------------------------------------*/
+    /* ESTILO PARA LISTADO                            */
+    /*------------------------------------------------*/
+    #global {
+        height: 100px;
+        width: 100%;
+        border: 1px solid #ddd;
+        background: #cccccc;
+        color: #0000ff;
+        overflow-y: scroll;
+    }
+
+    #mensajes {
+        height: auto;
+    }
+</style>
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <canvas id="c" width="250px" height="250px"></canvas>
+    </div>
+    <hr />
+    <div id="XmlContent">
+        <div id="global">
+            <div id="mensajes">
+                @Html.Raw(@ViewBag.Message)
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    //
+    var rectSize = 10;
+    var screenSize = 250;
+    var c_canvas = document.getElementById("c");
+    var context = c_canvas.getContext("2d");
+    //
+    $(document).ready()
+    {
+        //
+        console.log('LOADING GRID');
+        //
+        DrawGrid();
+        //
+        DrawRectangles();
+    }
+    //
+    function DrawGrid() {
+        //
+        for (var x = 0.5; x < 501; x += rectSize) {
+            context.moveTo(x, 0);
+            context.lineTo(x, 381);
+        }
+        //
+        for (var y = 0.5; y < 381; y += rectSize) {
+            context.moveTo(0, y);
+            context.lineTo(500, y);
+        }
+        //
+        context.strokeStyle = "#cccccc";
+        context.stroke();
+        //
+    }
+    //
+    function DrawRectangles() {
+        //
+        context.fillStyle = "#ccc";
+        for (var x = 0; x < 25; x++) {
+            //
+            context.fillRect(0 + (rectSize * x), screenSize - (rectSize * (x + 1)), (rectSize), (rectSize * (x + 1)));
+        }
+        //
+    }
+</script>

@@ -1,0 +1,21 @@
+﻿
+---------------------------------------------------------------------------------
+-- [_] "[MARKETING_STRATEGY]"
+---------------------------------------------------------------------------------
+- [_] Crear aplicativo.
+        - [_] upwork style.
+        - [_] HackerRank, LeetCode, topcoder and Codeforces
+    
+- [_] Ofrecer Freelance.
+        - [_] Upwork.
+        - [_] Fiverr.
+- [_] Ofrecer Por Linkedin.
+- [_] Ofrecer Por BDotNet.
+- [_] Ofrecer Por Redes Sociales
+        - [_] (fb).
+        - [_] (twitter).
+        - [_] (instagram).
+- [_] Ofrecer Via Email.
+        - [_] Construir lista de emails desde gmail.
+
+---------------------------------------------------------------------------------

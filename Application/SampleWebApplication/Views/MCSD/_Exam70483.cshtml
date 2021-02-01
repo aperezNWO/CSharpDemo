@@ -1,0 +1,29 @@
+﻿@{
+    ViewBag.Title   = @"[MCSD] - [Exam Ref - 70-483]";
+    ViewBag.Message = @"[Programming in C# - Second Edition]- [Rob Miles]";
+}@Page
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+            <p>@ViewBag.Message</p>
+        </div>
+    </div>
+    <div>
+        <ul>
+            <li>[Chapter 1 - Manage Program Flow]   </li>
+            <li>[Chapter 2 - Create and Use Types]  </li>
+            <li>[Chapter 3 - Debug and Security]    </li>
+            <li>[Chapter 4 - Implement Data Access] </li>
+                <ul>
+                    <li>@Html.ActionLink("[SKILL 4.1 - I/O OPERATIONS] ", "_MCSD"                   , "MCSD")</li>
+                    <li>@Html.ActionLink("[SKILL 4.2 - CONSUME DATA]   ", "Skill_4_2_Consume_Data"  , "Exam70483_4_DataAccess")</li>
+                    <li>@Html.ActionLink("[SKILL 4.3 - LINQ]           ", "Skill_4_3_Linq"          , "Exam70483_4_DataAccess")</li>
+                    <li>@Html.ActionLink("[SKILL 4.4 - SERIALIZATION]  ", "_MCSD"                   , "MCSD")</li>
+                    <li>@Html.ActionLink("[SKILL 4.5 - COLLECTIONS]    ", "_MCSD"                   , "MCSD")</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>

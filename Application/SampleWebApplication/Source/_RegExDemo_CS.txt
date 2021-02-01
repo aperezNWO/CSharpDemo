@@ -1,0 +1,333 @@
+﻿using Exam70483Library;
+using Exam70483Library.DataAccess;
+using Exam70483Library.Managers;
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+
+namespace Exam70483Web.Controllers
+{
+
+    public class RegExManager
+    {
+        #region "Campos"
+        private        string _tagSearch;
+        private        string _textSearch;
+        private        string _textContent;
+        private        string _textContentRaw;
+        private static string _pattern;
+        #endregion
+
+        #region "Propiedades"
+        public static string RegEx
+        { 
+            get
+            {
+                return _pattern;
+            }
+        }
+        #endregion
+
+        #region "Constructor"
+        public RegExManager
+            (
+              string p_tagSearch
+            , string p_textSearch
+            , string p_textContentRaw
+            )
+        {
+            this._tagSearch      = p_tagSearch;
+            this._textSearch     = p_textSearch;
+            this._textContentRaw = p_textContentRaw;
+        }
+        #endregion|
+
+        #region "Metodos"
+        public string GetMaches()
+        {
+            //
+            Regex rx;
+            //
+            MatchCollection matchCollection;
+            //
+            _pattern                        = string.Format(@"(<{0}.*>)(.*{1}.*)(<\/{0}>)",_tagSearch,_textSearch);
+            //
+            //-----------------------------------------
+            // LOG
+            //-----------------------------------------
+            //
+            string constring      = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+            //
+            using (var connection = (new SqlConnection(constring)))
+            {
+                //
+                connection.Open();
+                //
+                LogModel.Submit_Tsql_NonQuery(connection,
+                       LogModel.InsertAccessLog(string.Format(@"REGEX_TEXT_TO_EVAL : {0}", _textContent)));
+                //
+                LogModel.Submit_Tsql_NonQuery(connection,
+                       LogModel.InsertAccessLog(string.Format(@"REGEX_PATTERN      : {0}", _pattern)));
+                //
+                rx                             = new Regex(_pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                //
+                matchCollection                = rx.Matches(_textContentRaw);
+                //
+                _textContent                   = _textContentRaw;            
+                //
+                foreach (Match matchEntry in matchCollection)
+                {
+                    //
+                    LogModel.Submit_Tsql_NonQuery(connection,
+                        LogModel.InsertAccessLog(
+                                    string.Format("REGEX_XML. Match_Index ='{0}', Match_Value ='{1}'"
+                                                                , matchEntry.Index
+                                                                , matchEntry.Value)
+                                    ));
+                    //
+                    _textContent = _textContent.Replace(matchEntry.Value, string.Format(@"[{0}]", matchEntry.Value));
+                }
+                
+            }
+            //---------------------------------------------------------------------------------------
+            // CORREGIR LINE FEEDS    
+            //---------------------------------------------------------------------------------------
+            string _lineBreakPattern = @"(\r\n)";
+            //
+            rx   = new Regex(_lineBreakPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //
+            MatchCollection matchCollectionLineBreak = rx.Matches(_textContent);
+            //
+            foreach (Match matchEntryLineBreak in matchCollectionLineBreak)
+            {
+                _textContent = _textContent.Replace(matchEntryLineBreak.Value, string.Format(@"|", matchEntryLineBreak.Value));
+            }
+            //---------------------------------------------------------------------------------------
+            // CORREGIR TABS
+            //---------------------------------------------------------------------------------------
+            string _tabBreakPattern = @"[ \t]";
+            //
+            rx = new Regex(_tabBreakPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            //
+            MatchCollection matchCollectiontabs = rx.Matches(_textContent);
+            //
+            foreach (Match matchEntryTab in matchCollectiontabs)
+            {
+                _textContent = _textContent.Replace(matchEntryTab.Value, string.Format(@"■", matchEntryTab.Value));
+            }
+            //-------------------------------------------------------------------------------------------
+            // CONVERTGIR A CARACTERES LEGIBLES DE HTML
+            //-------------------------------------------------------------------------------------------
+            //    
+            _textContent          = HttpUtility.HtmlEncode(_textContent);
+            _textContent          = _textContent.Replace(@"|", @"<br/>");
+            _textContent          = _textContent.Replace(@"■", @"&nbsp;");
+            _textContent          = _textContent.Replace(@"[", @"<mark>");
+            _textContent          = _textContent.Replace(@"]", @"</mark>");
+            //
+            string status         = string.Format(@"{0}|{1}|{2}"
+                                        , matchCollection.Count.ToString()
+                                        , _textContent
+                                        , _pattern);
+            //
+            return status;
+        }
+        #endregion
+    }
+    //
+    public class DemosController : Controller
+    {
+        #region "Campos"
+        //
+        string constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+        string _documentsLocalDirectory = System.Configuration.ConfigurationManager.AppSettings["DocumentsLocalDirectory"];
+        #endregion
+
+        #region "Metodos"
+
+        #region "Raiz"
+        //
+        public ActionResult _Demos()
+        {
+            try
+            {
+                //string constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            return View();
+        }
+        //
+        #endregion
+
+        //...
+        
+        #region "Regex DEMO"
+        public ActionResult _RegExDemo()
+        {
+            //-------------------------------------------------
+            // LLAMADO A LA PÁGINA 
+            //-------------------------------------------------
+
+            try
+            {
+                //
+                string filePath         = Server.MapPath(@"~/xml/cdCatalog.xml");
+                string xmlContent       = System.IO.File.ReadAllText(filePath);
+                string xmlContentRaw    = xmlContent;
+                //    
+                //---------------------------------------------------------------------------------------
+                // CORREGIR LINE FEEDS    
+                //---------------------------------------------------------------------------------------
+                string _lineBreakPattern = @"(\r\n)";
+                //
+                Regex rx                 = new Regex(_lineBreakPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                //
+                MatchCollection matchCollectionLineBreak = rx.Matches(xmlContent);
+                //
+                foreach (Match matchEntryLineBreak in matchCollectionLineBreak)
+                {
+                    xmlContent = xmlContent.Replace(matchEntryLineBreak.Value, string.Format(@"|", matchEntryLineBreak.Value));
+                }
+                //---------------------------------------------------------------------------------------
+                // CORREGIR TABS
+                //---------------------------------------------------------------------------------------
+                string _tabBreakPattern = @"[ \t]";
+                //
+                rx = new Regex(_tabBreakPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                //
+                MatchCollection matchCollectiontabs = rx.Matches(xmlContent);
+                //
+                foreach (Match matchEntryTab in matchCollectiontabs)
+                {
+                    xmlContent = xmlContent.Replace(matchEntryTab.Value, string.Format(@"■", matchEntryTab.Value));
+                }
+                //-------------------------------------------------------------------------------------------
+                // CONVERTGIR A CARACTERES LEGIBLES DE HTML
+                //-------------------------------------------------------------------------------------------
+                string xmlEncoded = HttpUtility.HtmlEncode(xmlContent);
+                //    
+                xmlEncoded = xmlEncoded.Replace(@"|", @"<br/>");
+                xmlEncoded = xmlEncoded.Replace(@"■", @"&nbsp;");
+                //
+                //-------------------------------------------------------------------------------------------
+                //
+                //-------------------------------------------------------------------------------------------
+                ViewBag.Message          = xmlEncoded;
+                //
+                Session["XmlContent"]    = xmlEncoded;
+                //
+                Session["xmlContentRaw"] = xmlContentRaw;
+                //
+                ViewBag.RegEx            = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return View();
+        }
+        //
+        public string _RegExEval
+            (
+                 string p_tagSearch
+                ,string p_textSearch
+            )
+        {
+            //
+            string p_textContent    = Session["XmlContent"].ToString();
+            //                
+            string p_textContentRaw = Session["XmlContentRaw"].ToString();
+            //
+            string status         = "0";
+            //
+            try
+            {
+                //--------------------------------------------------
+                // LOG
+                //--------------------------------------------------
+                using (var connection = new SqlConnection(constring))
+                {
+                    //
+                    connection.Open();
+                    //
+                    LogModel.Submit_Tsql_NonQuery(connection,
+                       LogModel.InsertAccessLog(
+                                    string.Format("REGEX_XML. p_tagSearch='{0}', p_textSearch='{1}'"
+                                                             , p_tagSearch
+                                                             , p_textSearch)
+                                    ));
+                    //--------------------------------------------------
+                    // SEARCH REGEX TEXT
+                    //--------------------------------------------------
+                    RegExManager regexManager = new RegExManager
+                        (
+                              p_tagSearch
+                            , p_textSearch
+                            , p_textContentRaw
+                        );
+                    //
+                    status        = regexManager.GetMaches();
+                    //
+                    LogModel.Submit_Tsql_NonQuery(connection,
+                        LogModel.InsertAccessLog(
+                            string.Format("REGEX_XML. Status ='{0}'"
+                                         , status)
+                            ));
+                    //
+                }    
+            }
+            catch (Exception ex)
+            {
+
+                using (var connection = new SqlConnection(constring))
+                {
+                    //
+                    connection.Open();
+                    //
+                    LogModel.Submit_Tsql_NonQuery(connection,
+                       LogModel.InsertAccessLog(
+                                    string.Format("REGEX_ÈRROR. ='{0}'-'{1}'"
+                                                             , ex.Message
+                                                             , ex.StackTrace
+                                    ))
+                    );
+                }
+            }
+            //
+            return status;
+        }
+        //
+        public string _NewSearch()
+        {
+            //-------------------------------------------------
+            // LLAMADO A LA PÁGINA 
+            //-------------------------------------------------
+            string xmlContent   = string.Empty;
+            //
+            try
+            {
+                //
+                xmlContent      = Session["XmlContent"].ToString();
+                //
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            //
+            return xmlContent;
+        }
+        #endregion
+
+        #endregion
+    }
+}

@@ -1,0 +1,57 @@
+﻿@{
+    ViewBag.Title = @"[UNITTESTING 07]/[JSignature] ";
+}
+
+<style>
+</style>
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+    </div>
+    <hr />
+    <div id="signature"></div>
+    <hr />
+    <div>
+        [SOME_FUNCTIONALITY_HERE]
+    </div>
+    <hr />
+    <div>
+        <input id="NewData" type="button" title="[REINICIAR]" value="[REINICIAR]" disabled="disabled"></input>
+        |
+        <input id="SetData" type="button" title="[GENERAR]" value="[GENERAR]"></input>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        //
+        var $sigdiv = $("#signature");
+        //
+        $sigdiv.jSignature(); // inits the jSignature widget.
+        // after some doodling...
+        $sigdiv.jSignature("reset"); // clears the canvas and rerenders the decor on it.
+
+        // Getting signature as SVG and rendering the SVG within the browser.
+        // (!!! inline SVG rendering from IMG element does not work in all browsers !!!)
+        // this export plugin returns an array of [mimetype, base64-encoded string of SVG of the signature strokes]
+        /*
+        var datapair = $sigdiv.jSignature("getData", "svgbase64");
+        var i  = new Image();
+        i.src  = "data:" + datapair[0] + "," + datapair[1] ;
+        $(i).appendTo($("#someelement")); // append the image (SVG) to DOM.
+
+        // Getting signature as "base30" data pair
+        // array of [mimetype, string of jSIgnature"s custom Base30-compressed format]
+        datapair = $sigdiv.jSignature("getData","base30")
+        // reimporting the data into jSignature.
+        // import plugins understand data-url-formatted strings like "data:mime;encoding,data"
+        $sigdiv.jSignature("setData", "data:" + datapair.join(","))
+        */
+    });
+</script>
+
+
+

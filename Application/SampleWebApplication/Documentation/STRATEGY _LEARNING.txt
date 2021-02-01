@@ -1,0 +1,93 @@
+﻿/***************************************************************/
+-- LEARNING STRATEGY
+/***************************************************************/
+
+- [>] ALGORITHMS / THEMES
+
+      -- [>] NEURAL NETOWRKS.
+            -- [>] HANDWRITTEN RECOGNITION.
+            -- [>] https://www.codeproject.com/Articles/11285/Neural-Network-OCR
+      -- [_] SEARCH ALGOS.
+      -- [_] AI.
+            -- [>] https://www.coursera.org/learn/neural-networks-deep-learning/home/welcome
+            -- [>] DeepLearning.AI.
+      -- [_] MACHINE LEARNING.
+      -- [_] MATH / STATICSTICS.
+      -- [_] The Art of Computer Programming Live Demo.
+
+- [>] TECHNOLOGIES
+
+      -- [>] TYPESCRIPT.
+          -- [>] https://www.typescriptlang.org/docs/handbook
+      -- [>] ANGULAR.
+          -- [>] https://angular.io/
+          -- [>] https://victorroblesweb.es/2018/11/20/instalar-angular-7-paso-a-paso/
+          -- [>] https://angular.io/guide/visual-studio-2015
+          -- [>] https://mithunvp.com/using-angular-2-asp-net-mvc-5-visual-studio
+          -- [>] https://www.youtube.com/watch?v=xljC5_dgBro&feature=emb_logo
+          -- [>] http://www.developerin.net/a/53-Programming/123-Integrate-Angular-with-ASP.NET-MVC
+          -- [>] https://www.c-sharpcorner.com/article/learn-asp-net-mvc-using-angular-52/
+      -- [_] PYTHON.
+      -- [_] BOOSTRAP.
+      -- [_] FLUTTER.
+      -- [_] WEBASEEMBLY / PWA.
+      -- [_] VUE.
+      -- [_] REACT.
+      -- [_] NODE.JS.
+      -- [_] MVC.
+      -- [_] C#/DOTNET.
+      -- [_] C/C++.
+      -- [_] Ofimatica.
+      -- [_] Java.
+      -- [_] W3C Standards.
+      -- [_] UML / TOGAF.
+      -- [_] IREB / ISQI.
+      -- [_] IEEE / SWEBOK.
+      -- [_] PMBOK.
+
+- [_] CERTIFICATIONS
+
+      -- [_] https://www.deeplearning.ai/deep-learning-specialization/
+      -- [_] Harvard cs50 edx.
+
+- [_] TOOLS
+      -- [_] PROJECT HOSTING
+            -- [_] GIT.
+            -- [_] DEVOPS.
+            -- [_] CODE PROJECT.
+      -- [_] VIM.
+      -- [_] NETBEANS.      
+      -- [_] ECLIPSE.
+      -- [_] IONIC.
+      -- [_] FLUTTER.
+      -- [_] JIRA.
+      -- [_] DEVOPS.
+      -- [_] VISUAL STUDIO CODE.
+      -- [_] VISUAL STUDIO COMMUNITY.
+      -- [_] MS SQL SERVER.
+      -- [_] HOSTING
+             -- [_] SOMEE.COM
+             -- [_] https://www.freewebhostingarea.com/.
+
+
+- [_] WEB SITES
+
+      -- [_] https://beta.openai.com/
+      -- [_] IBM.
+                   -- [_] https://www.coursera.org/learn/ibm-ai-workflow-data-analysis-hypothesis-testing
+      -- [_] MDN (Mozilla Developer Network).
+      -- [_] GOOGLE DEV.
+      -- [_] DOTNET.MICROSOFT.COM.
+      -- [_] ALGOEXPERT.
+      -- [_] MOOC
+             -- [_] Coursera.
+             -- [_] Udemy.
+             -- [_] Platzi.
+             -- [_] Holberton Academy.
+             -- [_] UNAD.
+
+/***************************************************************/
+
+
+
+      

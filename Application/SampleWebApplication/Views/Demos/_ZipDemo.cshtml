@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = @"[COMPRESION        / Zip File        ]";
+}
+
+<style>
+    /*------------------------------------------------*/
+    /* ESTILOS STATUS DE OPERACION                    */
+    /*------------------------------------------------*/
+    .modalStatus {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 99; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    .modalStatus-content {
+        text-align:center;
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 1em;
+        border: 1px solid #888;
+        width: 100%; /* Could be more or less, depending on screen size */
+        color: black;
+    }
+</style>
+
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+            <p>[System.IO.Compression Namespace - <a href="javascript: void window.open('https://docs.microsoft.com/en-us/dotnet/api/system.io.compression.zipfile?view=net-5.0')">"[CLASE "ZipFile"]"</a>]</p>
+        </div>
+        <hr />
+        @using (Html.BeginForm("_ZipDemo",
+                        "Demos",
+                        FormMethod.Post,
+                        new { enctype = "multipart/form-data" }))
+        {
+            <label for="UploadFileCtrl">Cargar Archivo a Comprimir:</label>
+            <input type="file" name="UploadFileCtrl" id="UploadFileCtrl" />
+            <br />
+            <input type="submit" value="[CARGAR ARCHIVO]" />
+            <br />
+            <br />
+            <span> STATUS : [@ViewBag.Message]</span>
+            <br />
+        }
+        <hr />
+        <div>
+            <input id="GetZIP" type="button" title="[OBTENER ZIP]" value="[OBTENER ZIP]"></input>
+            <hr />
+            <a href="#" id="DownloadFile">Descargar ZIP</a>
+        </div>
+        <hr />
+        <a href="../Demos/_DemosIndex?lang=1">Volver al Menú</a>
+        <!-- INICIO VENTANA MODAL TRANSCURSO OPERACION -->
+        <div id="statusWindow" class="modalStatus" style="display:none">
+            <div class="modalStatus-content">
+                ... Procesando ...
+            </div>
+        </div>
+        <!-- FIN VENTANA MODAL TRANSCURSO DE OPERACION -->
+    </div>
+</div>
+
+<script type="text/javascript">
+    //
+    $(document).ready(function () {
+        console.log("LOADING PAGE 7");
+    });
+    //
+    function _ShowProgressBar() {
+        //
+        var modal = document.getElementById("statusWindow");
+        modal.style.display = "block";
+
+        console.log('status window show');
+        //
+    }
+    // 
+    function _HideProgressBar() {
+        //
+        var modal = document.getElementById("statusWindow");
+        modal.style.display = "none";
+        modal.style.display = "hidden";
+
+        console.log('status window hide');
+        //
+    }
+    //
+    function DebugHostingContent(msg) {
+        //
+        msg = msg.substring(0, 68);
+        //
+        return msg;
+    }
+    //
+    $("#GetZIP").click(function ()
+    {
+        try {
+            //
+            _ShowProgressBar();
+            //
+            var p_url = "SetZipAsync";
+            //
+            $.ajax(
+                {
+                    url   : p_url,
+                    async : true,
+                    global: true
+                })
+                .done(function (msg)
+                {
+                    //
+                    _HideProgressBar();
+                    //
+                    var filePath = DebugHostingContent(msg);
+                    //
+                    console.log("SET_ZIP_ASYNC. ZIP PATH : " + filePath);
+                    //
+                    $("#DownloadFile").attr("href", "javascript:void window.open('" + filePath + "');");
+                    //
+                    alert('SE GENERÓ CORRECTAMENTE EL ARCHIVO');
+                    //
+                }
+           );
+        }
+        catch (error)
+        {
+            //
+            alert("ERROR EN ARCHIVO ZIP");
+            //
+            console.error(error);
+        }
+        //
+    });
+</script>

@@ -1,0 +1,14 @@
+﻿---------------------------------------------------------------------------------
+-- [_] "[NEURAL NETWORK] - [STRATEGY]"
+---------------------------------------------------------------------------------
+
+  -- [x] https://www.codeproject.com/Articles/11285/Neural-Network-OCR
+  -- [>] jquery handwritten panel.
+         -- [x] https://willowsystems.github.io/jSignature/#/demo/.
+         -- [_] Remover linea blanca.
+         -- [_] Referencia.
+         -- [_] Licencia.
+  -- [_] AFORGE.
+         -- [_] Referencia.
+         -- [_] Licencia.
+---------------------------------------------------------------------------------

@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = @"[DEMOS - PROGRAMACION]";
+}
+
+<style>
+    #frameworkDemo {
+        font-size: x-small;
+    }
+
+    .li_mark a {
+        color: #808080;
+    }
+    .li_submark 
+    {
+        background-color: orangered;
+        font-size       : xx-small;
+    }
+    .li_submark a 
+    {
+        color: #0000ff;
+    }
+</style>
+<div class="main-container">
+    <div class="content">
+        <div class="content-body">
+            <p>@ViewBag.Title</p>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <P>
+            <select id="frameworkDemo">
+                <option selected="selected" value="0">SELECCIONE LENGUAJES</option>
+                <option selected="selected" value="1">[C#/MVC][JQUERY][CSS][XHTML]</option>
+                <option selected="selected" value="2">[C#/MVC][JQUERY][CSS][XHTML][TYPESCRIPT]</option>
+            </select>
+            NOTACION:<mark class="li_submark" style="padding-left:10px">&nbsp;</mark> = "EN CONSTRUCCION"
+        </P>
+    </div>
+    <div style="padding-left:20px;font-size:xx-small;">
+        <ol id="frameworkDemo_1" style="display:none;">
+            <li>@Html.ActionLink("[DISTANCIA MAS CORTA]"         , "_DijkstraDemo"               , "Demos")</li>
+            <li>@Html.ActionLink("[ALGORITMOS DE ORDENAMIENTO]"  , "_SortBenchMarkDemo"          , "Demos")</li>
+            <li>@Html.ActionLink("[EXPRESIONES REGULARES]"       , "_RegExDemo"                  , "Demos")</li>
+            <li>@Html.ActionLink("[GENERAR ARCHIVO ZIP]"         , "_ZipDemo"                    , "Demos")</li>
+            <li>@Html.ActionLink("[GENERAR ARCHIVO PDF]"         , "_PdfDemo"                    , "Demos")</li>
+            <li>@Html.ActionLink("[GENERAR ARCHIVO CSV]"         , "_XlsAsyncDemo"               , "Demos")</li>
+            <li>@Html.ActionLink("[LOG DE VISITAS]"              , "_LogDemo"                    , "Demos")</li>
+            <!--<li><a href="javascript:void window.open('https://procesos.ramajudicial.gov.co/procesoscs/')">[BUSQUEDA DE PROCESOS JUDICIALES]</a></li>-->
+        </ol>
+        <ol id="frameworkDemo_2" style="display:none;">
+            <li class="li_submark">
+                @Html.ActionLink("[RED NEURONAL]"                , "_NeuralNetworkDemo"          , "Demos")
+            </li>
+        </ol>
+    </div>
+    <hr />
+    <a>@Html.ActionLink("[HOME]", "Index", "Home")</a>
+</div>
+
+<script>
+    //
+    $(document).ready(function () {
+        //
+        console.log("LOADING PAGE DEMOS");
+        //
+        _EvalUrl();
+    })
+    //
+    $("#frameworkDemo").change(function () {
+        //
+        var selectedValue = $("#frameworkDemo").val();
+        //
+        console.log("Selected Value " + selectedValue);
+        //
+        _SelectItem(selectedValue);
+    });
+    //
+    function _EvalUrl() {
+        //
+        var queries       = {};
+        var selectedValue = 0;
+        //
+        $.each(document.location.search.substr(1).split('&'), function (c, q) {
+            //
+            var i = q.split('=');
+            //
+            if (i.length > 1)
+            {
+                //
+                queries[i[0].toString()] = i[1].toString();
+                //
+                console.log('ITERATION : ' + '[' + c + ']=' + q);
+                //
+                console.log('URL : ' + '[' + i[1].toString() + ']=' + queries[i[0].toString()]);
+            }
+        });
+        //
+        if (queries["lang"] != null) {
+            //
+            selectedValue = queries["lang"];
+            //
+            console.log('Selected Item : ' + selectedValue);
+        }
+        //
+        $("#frameworkDemo").val(selectedValue);
+        //
+        _SelectItem(selectedValue);
+    }
+    //
+    function _SelectItem(selectedValue)
+    {
+        switch (selectedValue) {
+            //
+            case "0":
+                //
+                $("#frameworkDemo_1").attr("style", "display:none;");
+                $("#frameworkDemo_2").attr("style", "display:none;");
+                //
+                console.log($("#frameworkDemo_1").attr("style"));
+                //
+                break;
+            case "1":
+                //
+                $("#frameworkDemo_1").attr("style", "display:inline;");
+                $("#frameworkDemo_2").attr("style", "display:none;");
+                //
+                console.log($("#frameworkDemo_1").attr("style"));
+                //
+                break;
+            case "2":
+                //
+                $("#frameworkDemo_1").attr("style", "display:none;");
+                $("#frameworkDemo_2").attr("style", "display:inline;");
+                //
+                console.log($("#frameworkDemo_2").attr("style"));
+                //
+                break;
+        }
+
+    }
+
+</script>

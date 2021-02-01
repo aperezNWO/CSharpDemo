@@ -1,0 +1,665 @@
+﻿using Exam70483.Libraries.Managers;
+using Exam70483Library;
+using Exam70483Library.DataAccess;
+using Exam70483Library.Managers;
+using Exam70483Web.Models;
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Web;
+using System.Web.Services;
+using System.Web.UI;
+
+namespace Exam70483Web.Views.Demos
+{
+    #region "Clases"
+    public class CSVManager
+    {
+        #region "Campos Dinamicos"
+        private string nombreDocumento;
+        private string documentHeader;
+        private DataTable maestroListado;
+        private Globals.AsyncTaskType asyncTaskName;
+        private string rootPath;
+        #endregion
+
+        #region "Campos Estaticos"
+        private static string csvSeparator = ";";
+        private static string csvSeparatorReplacement = "|";
+        #endregion
+
+        #region "constructor"
+        //
+        public CSVManager
+        (
+                  Globals.AsyncTaskType anAsyncTaskName
+                , DataTable             aMaestroListado
+                , string                aRootPath
+        )
+        {
+            //
+            this.asyncTaskName   = anAsyncTaskName;
+            this.maestroListado  = aMaestroListado;
+            this.rootPath        = aRootPath;
+
+            //
+            SetPreconditions();
+        }
+
+        public CSVManager(Globals.AsyncTaskType anAsyncTaskName, DataTable aMaestroListado)
+        {
+            this.asyncTaskName = anAsyncTaskName;
+            this.maestroListado = aMaestroListado;
+
+            this.SetPreconditions();
+        }
+        #endregion
+
+        #region "Propiedades"
+        public static string CSVSeparator
+        {
+            get
+            {
+                return csvSeparator;
+            }
+        }
+
+        public static string CSVSeparatorReplacement
+        {
+            get
+            {
+                return csvSeparatorReplacement;
+            }
+        }
+
+        public string DocumentHeader
+        {
+            get
+            {
+                return documentHeader;
+            }
+            set
+            {
+                documentHeader = value;
+            }
+        }
+
+        public static string DirectorioLocalDocumentos
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["DocumentsLocalDirectory"].ToString();
+            }
+        }
+
+        public static string ExtensionDocumento
+        {
+            get
+            {
+                return "csv";
+            }
+        }
+
+        public static string DirectorioLocalCSV
+        {
+            get
+            {
+                string directorioLocalCSV = string.Format(@"{0}\{1}"
+                , DirectorioLocalDocumentos
+                , CSVManager.ExtensionDocumento);
+
+                return directorioLocalCSV;
+            }
+        }
+
+        public string NombreDocumento
+        {
+            // 1.1 COMPOSICION DE NOMBRE DE DOCUMENTO :
+            // a. Sesion
+            // b. fecha
+            // c. hora.
+            // d. minuto/segundo
+            get
+            {
+                return this.nombreDocumento;
+            }
+        }
+
+        public string RutaDocumentoCSV
+        {
+            get
+            {
+                string rutaDocumentoCSV = string.Format(@"{0}\{1}\{2}"
+                                , this.rootPath
+                                , CSVManager.DirectorioLocalCSV
+                                , this.NombreDocumento);
+
+                return rutaDocumentoCSV;
+            }
+        }
+
+        public static string UrlRootDocumentos
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["DocumentsUrl"].ToString();
+            }
+        }
+
+        public string ResultsURL
+        {
+            get
+            {
+                //
+                string resultsURL = string.Format(@"../{0}/{1}"
+                                , CSVManager.DirectorioLocalCSV
+                                , this.NombreDocumento);
+                //
+                resultsURL = resultsURL.Replace(@"\", @"/");
+                //
+                return resultsURL;
+            }
+        }
+        #endregion
+
+        #region "Metodos"
+
+        #region "Auxiliares"
+        private void SetPreconditions()
+        {
+            //
+            this.nombreDocumento = string.Format("{0}{1}.{2}"
+             , System.Guid.NewGuid().ToString()
+             , DateTime.Now.ToString(Globals.DateFormatShortTimestamp)
+             , ExtensionDocumento);
+            //
+            string directoryPath = string.Format("{0}{1}", this.rootPath, CSVManager.DirectorioLocalCSV);
+            //
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+        }
+        #endregion
+
+        #region "Principales"
+        private string GetCSVExnacato()
+        {
+            //-----------------------------------------
+            // PRECONDICIONES
+            //-----------------------------------------
+            if (this.maestroListado == null)
+                return string.Empty;
+
+            //-----------------------------------------
+            // LOG
+            //-----------------------------------------
+
+            string constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+            //
+            using (var connection = (new SqlConnection(constring)))
+            {
+                connection.Open();
+
+                LogModel.Submit_Tsql_NonQuery(connection, 
+                   LogModel.InsertAccessLog(string.Format("FILE_PATH : {0}", this.RutaDocumentoCSV)));
+
+            }
+
+            //-----------------------------------------
+            // ESCRIBIR DATOS
+            //-----------------------------------------
+            this.DocumentHeader =  string.Format("sep={0}{1}", CSVManager.CSVSeparator, System.Environment.NewLine);
+            this.DocumentHeader += string.Format("NombreCompleto{0}ProfesionOficio{0}", CSVManager.CSVSeparator);
+            //
+            using (StreamWriter sw = new StreamWriter(this.RutaDocumentoCSV, true, Encoding.Unicode))
+            {
+                //
+                sw.WriteLine(this.DocumentHeader);
+                //
+                int rowCount = maestroListado.Rows.Count;
+                //
+                for (int i = 0; i < rowCount; i++)
+                {
+                    //
+                    StringBuilder content = new StringBuilder();
+                    //
+                    string nombreCompleto  = maestroListado.Rows[i][1].ToString();
+                    //
+                    content.Append
+                        (
+                            string.Format("=\"{0}\"", nombreCompleto)
+                        );
+                    //
+                    string profesionOficio = maestroListado.Rows[i][2].ToString();
+                    //
+                    content.Append
+                        (
+                           string.Format("{0}{1}"
+                                 , CSVManager.CSVSeparator
+                                 , profesionOficio
+                        ));
+                    //
+                    sw.WriteLine(content.ToString());
+                }
+
+                sw.Close();
+            }
+            return this.ResultsURL;
+        }
+
+        public string GetCSV()
+        {
+            //
+            string status = string.Empty;
+            //
+            try
+            {
+                switch (this.asyncTaskName)
+                {
+                    case Globals.AsyncTaskType.CSVExnacato:
+                        status = this.GetCSVExnacato();
+                        break;
+                }
+                //
+                return status;
+            }
+            catch (Exception ex)
+            {
+
+                //-----------------------------------------
+                // LOG
+                //-----------------------------------------
+
+                string constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+                //
+                using (var connection = (new SqlConnection(constring)))
+                {
+                    connection.Open();
+
+                    LogModel.Submit_Tsql_NonQuery(connection, 
+                       LogModel.InsertAccessLog(string.Format(@"CSV_ERROR : {0} : {1} ", ex.Message, ex.StackTrace)));
+
+                }
+
+                //
+                return "ERROR_CSV";
+            }
+        }
+        #endregion 
+
+        #endregion
+    }
+    //
+    public abstract class AsyncTask
+    {
+        #region "0. Delegados/Eventos"
+        public delegate void StatusChangedEventHandler(string args);
+        public delegate void AsyncTaskDelegate();
+        public event StatusChangedEventHandler StatusChanged;
+        #endregion
+
+        #region "1. Campos"
+        protected String                _taskprogress;
+        protected String                _endTaskProgress;
+        protected AsyncTaskDelegate     _dlgt;
+        private   System.Web.UI.Page    _mainPage;
+        protected Globals.AsyncTaskType _asyncTaskType;
+        private   string                constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+        #endregion
+
+        #region "2. CONSTRUCTOR"
+        public AsyncTask(System.Web.UI.Page page, Globals.AsyncTaskType asyncTaskName)
+        {
+            this._mainPage = page;
+            this._asyncTaskType = asyncTaskName;
+        }
+        #endregion
+
+        #region "3. METODOS"
+        #region "METODOS ABSCRACTOS"
+        public abstract void ExecuteAsyncTask();
+        #endregion
+
+        #region "METODOS CONCRETOS"
+        // Invoke the Changed event; called whenever list changes
+        public void OnStatusChanged(string statusDescription)
+        {
+            if (StatusChanged != null)
+                StatusChanged(statusDescription);
+        }
+
+        // Define the method that will get called to
+        // start the asynchronous task.
+        public IAsyncResult OnBegin(object sender, EventArgs e,
+            AsyncCallback cb, object extraData)
+        {
+            OnStatusChanged(_taskprogress);
+
+            _dlgt               = new AsyncTaskDelegate(ExecuteAsyncTask);
+            IAsyncResult result = _dlgt.BeginInvoke(cb, extraData);
+
+            return result;
+        }
+
+        // Define the method that will get called when
+        // the asynchronous task is ended.
+        public void OnEnd(IAsyncResult ar)
+        {
+            OnStatusChanged(_endTaskProgress);
+            _dlgt.EndInvoke(ar);
+        }
+
+        // Define the method that will get called if the task
+        // is not completed within the asynchronous timeout interval.
+        public void OnTimeout(IAsyncResult ar)
+        {
+            _taskprogress = "Ha ocurrido un problema. For favor intente nuevamente.";
+            OnStatusChanged(_taskprogress);
+        }
+
+        public void BeginExecuteAsyncTask()
+        {
+            try
+            {
+                // Define the asynchronuous task.
+                PageAsyncTask pageAsyncTask = new PageAsyncTask(this.OnBegin, this.OnEnd, this.OnTimeout, true);
+
+                // Register the asynchronous task.
+                this._mainPage.RegisterAsyncTask(pageAsyncTask);
+
+                // Execute the register asynchronous task.
+                this._mainPage.ExecuteRegisteredAsyncTasks();
+
+            }
+            catch (Exception ex)
+            {
+                //------------------------------------------------------------------------------------------------------
+                // LOG
+                //------------------------------------------------------------------------------------------------------
+                //
+                string errorMsg = ex.InnerException.Message + " | " + ex.InnerException.StackTrace;
+                //
+                using (var connection = (new SqlConnection(constring)))
+                {
+                    connection.Open();
+
+                    PersonasModel.Submit_Tsql_NonQuery(connection, 
+                       PersonasModel.Build_3_Tsql_Inserts(string.Format("ASYNCTASK_BeginExecuteAsyncTask_ERROR : {0} ", errorMsg)));
+                }
+            }
+        }
+        #endregion
+        #endregion
+    }
+    //
+    public class CSVAsyncTask : AsyncTask
+    {
+        #region "Campos"
+        private string    constring        = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+        private string    rootPath         = HttpContext.Current.Server.MapPath("~/");
+        private DataTable _maestroListado  = new DataTable();
+        public  string    _Status          = String.Empty;
+        #endregion
+
+        #region "2. Constructor"
+        public CSVAsyncTask(System.Web.UI.Page page, Globals.AsyncTaskType asyncTaskName, DataTable maestroListado)
+            : base(page, asyncTaskName)
+        {
+            this._maestroListado = maestroListado;
+        }
+        #endregion
+
+        #region "3. Metodos"
+        //
+        public override void ExecuteAsyncTask()
+        {
+            switch (this._asyncTaskType)
+            {
+                case Globals.AsyncTaskType.CSVExnacato:
+                    {
+                        CSVManager csvManager = new CSVManager
+                        (
+                              this._asyncTaskType
+                            , this._maestroListado
+                            , rootPath
+                        );
+
+                        this._taskprogress = csvManager.GetCSV();
+
+                        //------------------------------------------------------------------------------------------------------
+                        // LOG
+                        //------------------------------------------------------------------------------------------------------
+                        using (var connection = (new SqlConnection(constring)))
+                        {
+                            connection.Open();
+
+                            LogModel.Submit_Tsql_NonQuery(connection,
+                               LogModel.InsertAccessLog(string.Format("ROOT_PATH : {0}", rootPath)));
+
+                            LogModel.Submit_Tsql_NonQuery(connection,
+                               LogModel.InsertAccessLog(string.Format("ROOT_FILE : {0}", _taskprogress)));
+
+                            LogModel.Submit_Tsql_NonQuery(connection,
+                               LogModel.InsertAccessLog(string.Format("RECORD_AMT : {0}", this._maestroListado.Rows.Count)));
+
+                        }
+                        //
+                        this._endTaskProgress   = string.Format("RECORD_AMT : {0}" , this._maestroListado.Rows.Count);
+                        this._Status            = this._taskprogress;
+                    }
+
+                    break;
+            }
+            OnStatusChanged(_taskprogress);
+        }
+        #endregion
+    }
+    //
+    public partial class _XlsAsyncDemoClassic : System.Web.UI.Page
+    {
+        #region "Campos"
+        private static string constring = System.Configuration.ConfigurationManager.ConnectionStrings["defaultConnection"].ConnectionString;
+        private static string rootPath  = HttpContext.Current.Server.MapPath("~/");
+        #endregion
+
+        #region "Métodos"
+        [WebMethod]
+        public static string SetCSVTaskWeb()
+        {
+            //
+            string status = string.Empty;
+            //
+            status = SetCSVTask();
+            //------------------------------------------------------------------------------------------------------
+            // LOG
+            //------------------------------------------------------------------------------------------------------
+            using (var connection = (new SqlConnection(constring)))
+            {
+                connection.Open();
+
+                LogModel.Submit_Tsql_NonQuery(connection,
+                   LogModel.InsertAccessLog(string.Format("SETCSVTASK_PAGEMETHOD : {0}",status)));
+
+            }
+            //
+            return status;
+        }
+        //
+        private static string SetCSVTask()
+        {
+            string status = string.Empty;
+
+            //------------------------------------------------------------------------------------------------------
+            // OBTENER DATOS
+            //------------------------------------------------------------------------------------------------------
+            DataTable maestroListado = PersonasModel.ListadoPersonasDataTable();
+
+            //------------------------------------------------------------------------------------------------------
+            // DECLARACION DE VARIABLES
+            //------------------------------------------------------------------------------------------------------
+            Exam70483Library.Globals.AsyncTaskType asyncType = Exam70483Library.Globals.AsyncTaskType.CSVExnacato;
+
+            //------------------------------------------------------------------------------------------------------
+            // INSTANCIACION DE CLASE 
+            //------------------------------------------------------------------------------------------------------
+
+            //
+            CSVManager csvManager = new CSVManager
+                (
+                      asyncType
+                    , maestroListado
+                    , rootPath
+                );
+            status = csvManager.GetCSV();
+
+            //------------------------------------------------------------------------------------------------------
+            // LOG
+            //------------------------------------------------------------------------------------------------------
+            using (var connection = (new SqlConnection(constring)))
+            {
+                connection.Open();
+
+                LogModel.Submit_Tsql_NonQuery(connection,
+                   LogModel.InsertAccessLog(string.Format("ROOT_PATH : {0}", rootPath)));
+
+                LogModel.Submit_Tsql_NonQuery(connection,
+                   LogModel.InsertAccessLog(string.Format("ROOT_FILE : {0}", status)));
+
+                LogModel.Submit_Tsql_NonQuery(connection,
+                   LogModel.InsertAccessLog(string.Format("RECORD_AMT : {0}", maestroListado.Rows.Count)));
+
+            }
+
+            //
+            return status;
+
+        }
+
+        private static string SetCSVTask(System.Web.UI.Page page)
+        {
+            string status = string.Empty;
+
+            //------------------------------------------------------------------------------------------------------
+            // DECLARACION DE VARIABLES
+            //------------------------------------------------------------------------------------------------------
+            Exam70483Library.Globals.AsyncTaskType asyncType = Exam70483Library.Globals.AsyncTaskType.CSVExnacato;
+
+            //------------------------------------------------------------------------------------------------------
+            // OBTENER DATOS
+            //------------------------------------------------------------------------------------------------------
+            DataTable maestroListado = PersonasModel.ListadoPersonasDataTable();
+
+            //------------------------------------------------------------------------------------------------------
+            // INSTANCIACION DE CLASE 
+            //------------------------------------------------------------------------------------------------------
+            CSVAsyncTask asyncTaskCSV = new CSVAsyncTask(page, asyncType, maestroListado);
+            asyncTaskCSV.BeginExecuteAsyncTask();
+            status                    = asyncTaskCSV._Status;
+            //------------------------------------------------------------------------------------------------------
+
+
+            //------------------------------------------------------------------------------------------------------
+            // EJEMPLO MSDN
+            //------------------------------------------------------------------------------------------------------
+            //_CSVAsyncTask asyncTaskCSV = new _CSVAsyncTask();
+            //PageAsyncTask asyncTask1 = new PageAsyncTask(asyncTaskCSV.OnBegin, asyncTaskCSV.OnEnd, asyncTaskCSV.OnTimeout, "Async1", true);
+            //------------------------------------------------------------------------------------------------------
+
+
+            return status;
+
+        }
+        //
+        public void GetCSV()
+        {
+            try
+            {
+                //
+                ScriptManager.RegisterStartupScript(this, this.Page.GetType(), @"[ALERTA_1]",
+                                                    "javascript:_ShowProgressBar()", true);                
+                //
+                string filePath                        = SetCSVTask(this.Page);
+                //
+                string fileUrl                         = string.Format(@"javascript: void window.open('{0}')", filePath);
+                this.DownloadFile.Attributes["href"]   = fileUrl;
+                //
+                //------------------------------------------------------------------------------------------------------
+                // LOG
+                //------------------------------------------------------------------------------------------------------
+                using (var connection = (new SqlConnection(constring)))
+                {
+                    connection.Open();
+
+                    LogModel.Submit_Tsql_NonQuery(connection,
+                       LogModel.InsertAccessLog(string.Format("SETCSVTASK_SERVERCLICK : {0}", filePath)));
+
+                    LogModel.Submit_Tsql_NonQuery(connection,
+                       LogModel.InsertAccessLog(string.Format("SETCSVTASK_SERVERCLICK : {0}", fileUrl)));
+
+                }
+                //
+                this.GetCSVUpdatePanel.Update();
+                //
+                this.ShowStatusWindow("SE GENERÓ CORRECTAMENTE EL ARCHIVO");
+                //
+            }
+            catch (Exception ex)
+            {
+                //------------------------------------------------------------------------------------------------------
+                // LOG
+                //------------------------------------------------------------------------------------------------------
+                //
+                string errorMsg = ex.InnerException.Message + " | " + ex.InnerException.StackTrace;
+                //
+                using (var connection = (new SqlConnection(constring)))
+                {
+                    connection.Open();
+
+                    LogModel.Submit_Tsql_NonQuery(connection,
+                       LogModel.InsertAccessLog(string.Format("SETCSVTASK_SERVERCLICK_ERROR : {0} ", errorMsg)));
+                }
+                //
+                this.ShowStatusWindow(errorMsg);
+                //
+            }
+        }
+        //
+        public void ShowStatusWindow(string msg)
+        {
+            ScriptManager.RegisterStartupScript(this, this.Page.GetType(), @"[ALERTA_3]",
+                                    "javascript:_HideProgressBar()", true);
+
+            ScriptManager.RegisterStartupScript(this, this.Page.GetType(), @"[ALERTA_2]",
+                                                string.Format("javascript:alert('{0}')", msg), true);
+
+            //------------------------------------------------------------------------------------------------------
+            // LOG
+            //------------------------------------------------------------------------------------------------------
+            using (var connection = (new SqlConnection(constring)))
+            {
+                connection.Open();
+
+                LogModel.Submit_Tsql_NonQuery(connection,
+                    LogModel.InsertAccessLog(string.Format("SETCSVTASK_SERVERCLICK_MSG : {0} ", string.Format("javascript:alert('{0}')", msg))));
+            }
+
+        }
+        #endregion
+
+        #region "Event Handlers"
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            //
+            this.scm.RegisterAsyncPostBackControl(GetCsvServerMethod);
+            //
+        }
+
+        protected void GetCSV_ServerClick(object sender, EventArgs e)
+        {
+            GetCSV();
+        }
+        #endregion
+    }
+    #endregion
+}
